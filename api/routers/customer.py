@@ -574,14 +574,13 @@ async def continue_channel(payload: ContinueChannelRequest, request: Request):
     official_phone_number = "1-403-709-0808" if to_channel == "phone" else None
     if to_channel == "phone":
         customer_message = (
-            f"You can continue by phone. Your support reference is {reference}. "
+            "You can continue by phone. "
             "Flair's published call center number is 1-403-709-0808. Wait times may vary. "
             "I prepared your recent conversation details so you do not need to start over."
         )
     elif to_channel == "sms":
         customer_message = (
-            f"I prepared an SMS-ready continuation summary with support reference {reference}. "
-            "Use this reference if you continue by text so you do not need to start over."
+            "I prepared an SMS-ready continuation summary so you can continue by text without starting over."
         )
     else:
         customer_message = (

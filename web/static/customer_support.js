@@ -370,9 +370,8 @@
       removeTypingIndicator();
       appendMessage("agent", data.message || data.response_text || "I can help with that.", data);
       renderCustomerPlan(data.customer_plan || null);
-      if (data.support_reference) addSystemNote(`Support reference: ${data.support_reference}`);
       if (data.follow_up_summary?.summary && data.support_reference) {
-        addSystemNote("Summary and next steps are saved under your support reference.");
+        addSystemNote("Summary and next steps are saved for this request.");
       }
       refreshTracker();
       setStatus("Connected.");
@@ -410,9 +409,6 @@
       addSystemNote(data.customer_message || `Prepared continuation to ${toChannel}.`);
       if (toChannel === "phone" && data.phone_number) {
         addSystemNote(`Call Flair: ${data.phone_number}`);
-      }
-      if (toChannel === "sms" && data.sms_preview) {
-        addSystemNote(`SMS-ready summary: ${data.sms_preview}`);
       }
       setStatus(`Prepared continuation to ${toChannel}.`);
       refreshTracker();
@@ -483,7 +479,7 @@
         setStatus("Summary unavailable yet.");
         return;
       }
-      addSystemNote(`Summary prepared${data.payload?.support_reference ? ` for ${data.payload.support_reference}` : ""}.`);
+      addSystemNote("Summary prepared.");
       refreshTracker();
     } catch (err) {
       addSystemNote(`Could not prepare summary right now. ${String(err)}`);
@@ -517,7 +513,9 @@
       card.className = "tracker-item";
       const top = document.createElement("div");
       top.className = "tracker-top";
-      top.innerHTML = `<strong>${ref.reference}</strong><span class="tracker-status">${String(ref.status || "").replaceAll("_", " ")}</span>`;
+      const intentLabel = String(ref?.metadata?.intent || "").replaceAll("_", " ").trim();
+      const customerLabel = intentLabel ? `${intentLabel.charAt(0).toUpperCase()}${intentLabel.slice(1).toLowerCase()} request` : "Support request";
+      top.innerHTML = `<strong>${customerLabel}</strong><span class="tracker-status">${String(ref.status || "").replaceAll("_", " ")}</span>`;
       const sum = document.createElement("div");
       sum.className = "tracker-summary";
       sum.textContent = ref.summary || "Support update available.";
