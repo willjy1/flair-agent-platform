@@ -427,3 +427,49 @@ def test_stale_memory_confirmation_for_refund_booking_reference():
     data = second.json()
     assert data["agent"] == "refund_agent"
     assert "still have a booking reference from earlier" in data["message"].lower()
+
+
+def test_frontier_generic_flight_status_prompt_does_not_fallback():
+    client = TestClient(create_app())
+    resp = client.post(
+        "/api/v1/customer/message",
+        json={
+            "tenant": "frontier",
+            "session_id": "frontier-status-1",
+            "customer_id": "cust-frontier-1",
+            "channel": "web",
+            "content": "What's my flight status?",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["agent"] != "support_fallback"
+    assert "i ran into a problem while handling that request" not in data["message"].lower()
+    assert data["intent"] in {"DELAY_INFO", "IRROPS", "GENERAL_INQUIRY"}
+
+
+def test_common_cross_tenant_prompts_do_not_return_support_fallback():
+    client = TestClient(create_app())
+    scenarios = [
+        ("frontier", "What's my flight status?"),
+        ("progressive", "What's the status of my claim?"),
+        ("aetna", "I need help with a prior authorization."),
+        ("dukeenergy", "Power is out. What should I do?"),
+        ("xfinity", "My internet is down. Is there an outage?"),
+        ("fedex", "Where is my package?"),
+    ]
+    for tenant, prompt in scenarios:
+        resp = client.post(
+            "/api/v1/customer/message",
+            json={
+                "tenant": tenant,
+                "session_id": f"s-{tenant}",
+                "customer_id": f"c-{tenant}",
+                "channel": "web",
+                "content": prompt,
+            },
+        )
+        assert resp.status_code == 200, (tenant, resp.status_code)
+        data = resp.json()
+        assert data["agent"] != "support_fallback", (tenant, data)
+        assert "i ran into a problem while handling that request" not in str(data.get("message", "")).lower(), (tenant, data.get("message"))

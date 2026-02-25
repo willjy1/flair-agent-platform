@@ -1004,12 +1004,25 @@ async def continue_channel(payload: ContinueChannelRequest, request: Request):
     brand = str(contact_ctx.get("brand") or "Support")
     official_phone_number = str(contact_ctx.get("call_center_phone")) if to_channel == "phone" and contact_ctx.get("call_center_phone") else None
     if to_channel == "phone":
-        customer_message = (
-            "You can continue by phone. "
-            f"{brand}'s published call center number is {official_phone_number or 'the official support number'}. "
-            f"{str(contact_ctx.get('wait_time_disclaimer') or 'Wait times may vary.')} "
-            "I prepared your recent conversation details so you do not need to start over."
-        )
+        if official_phone_number:
+            customer_message = (
+                "You can continue by phone. "
+                f"{brand}'s published call center number is {official_phone_number}. "
+                f"{str(contact_ctx.get('wait_time_disclaimer') or 'Wait times may vary.')} "
+                "I prepared your recent conversation details so you do not need to start over."
+            )
+        else:
+            contact_page = str(contact_ctx.get("contact_page_url") or "").strip()
+            if contact_page:
+                customer_message = (
+                    f"I prepared your recent conversation details so you can continue with {brand} support without starting over. "
+                    f"Use the official support page to choose phone or live support options: {contact_page}"
+                )
+            else:
+                customer_message = (
+                    f"I prepared your recent conversation details so you can continue with {brand} support without starting over. "
+                    "Use the official support channels shown above to continue by phone or live support."
+                )
     elif to_channel == "sms":
         customer_message = (
             "I prepared an SMS-ready continuation summary so you can continue by text without starting over."
