@@ -33,11 +33,10 @@ class EscalationAgent(BaseAgent):
             state=ConversationState.ESCALATED,
             response_text=(
                 "I can connect you with a human support agent and share the conversation details so you do not need to repeat everything. "
-                "For urgent support, Flair's published contact number is 1-833-711-2333."
+                "Flair's published call center number is 1-403-709-0808. Wait times may vary."
             ),
             agent=self.name,
             escalate=True,
             tool_calls=[ToolCallRecord(tool_name="create_case", args={"subject": "Human escalation requested"}, result_summary=case["case_id"])],
             metadata={"crm_case_id": case["case_id"]},
         )
-

@@ -38,7 +38,7 @@ class BookingAgent(BaseAgent):
                 response_text=(
                     "I'm sorry that happened. I can help you quickly, but I need your 6-character booking reference first to check the booking. "
                     "If you still need to travel today, tell me that as well so I prioritize rebooking options. "
-                    "If you need urgent human help right now, Flair's published support number is 1-833-711-2333."
+                    "If you want to contact Flair directly right now, Flair's published call center number is 1-403-709-0808. Wait times may vary."
                 ),
                 agent=self.name,
                 next_actions=["provide_booking_reference", "urgent_human_help_if_needed"],

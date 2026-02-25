@@ -531,7 +531,7 @@ class LLMRuntime:
         if "missed flight" in lower or "missed my flight" in lower or "no-show" in lower:
             return (
                 "I'm sorry that happened. I can help check your options. Please share your booking reference so I can look up the trip and guide the next steps. "
-                "If you need urgent human help, Flair's published support number is 1-833-711-2333."
+                "If you want to contact Flair directly, Flair's published call center number is 1-403-709-0808. Wait times may vary."
             )
         return "I can help with that. Please share your booking reference, flight number, or a bit more detail about the issue."
 
@@ -562,5 +562,6 @@ class LLMRuntime:
         if "tomorrow" in text.lower():
             entities.setdefault("date_hint", "tomorrow")
         return entities
+
 
 

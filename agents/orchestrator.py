@@ -200,6 +200,8 @@ class OrchestratorAgent(BaseAgent):
         responses.append(primary_response)
 
         for agent in secondaries:
+            if agent.name == "compensation_agent" and not self._should_run_compensation_chain(primary_response):
+                continue
             chained_context = dict(message.context)
             chained_context.update(primary_response.metadata)
             if "flight_status" in primary_response.metadata:
@@ -211,6 +213,18 @@ class OrchestratorAgent(BaseAgent):
             responses.append(await agent.process(chained_message))
 
         return self._merge_chain_responses(responses)
+
+    def _should_run_compensation_chain(self, primary_response: AgentResponse) -> bool:
+        md = primary_response.metadata or {}
+        delay_minutes = 0
+        try:
+            delay_minutes = int(md.get("delay_minutes") or 0)
+        except Exception:
+            delay_minutes = 0
+        if delay_minutes >= 180:
+            return True
+        next_actions = [str(x) for x in (primary_response.next_actions or [])]
+        return "compensation_check" in next_actions
 
     async def handle_state_transition(
         self,
@@ -957,8 +971,9 @@ class OrchestratorAgent(BaseAgent):
         rewritten = self._sanitize_customer_text(llm_result.text)
         if not rewritten or len(rewritten) < 18:
             return response
-        if "1-833-711-2333" in response.response_text and "1-833-711-2333" not in rewritten:
-            rewritten = f"{rewritten} For urgent support, Flair's published contact number is 1-833-711-2333."
+        old_num = "1-403-709-0808"
+        if old_num in response.response_text and old_num not in rewritten:
+            rewritten = f"{rewritten} Flair's published call center number is {old_num}. Wait times may vary."
         response.response_text = rewritten
         response.metadata["llm_rewritten"] = True
         response.metadata["llm_rewriter"] = {"provider": llm_result.provider, "model": llm_result.model}

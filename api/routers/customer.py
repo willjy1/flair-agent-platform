@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
@@ -313,7 +314,7 @@ async def customer_voice_simulate(payload: CustomerMessageRequest, request: Requ
                 metadata={"agent": result.get("agent"), "intent": result.get("metadata", {}).get("triage", {}).get("intent") if isinstance(result.get("metadata"), dict) else None},
             )
         )
-    return {
+    response_payload = {
         "session_id": payload.session_id,
         "customer_id": payload.customer_id,
         "tenant": tenant_slug,
@@ -335,8 +336,19 @@ async def customer_voice_simulate(payload: CustomerMessageRequest, request: Requ
         "self_service_options": result.get("self_service_options", []),
         "customer_plan": result.get("customer_plan", {}),
         "support_reference": support_reference,
-        "debug": {"voice_simulation": result},
+        "debug": {
+            "voice_simulation": {
+                "agent": result.get("agent"),
+                "state": result.get("state"),
+                "next_actions": result.get("next_actions", []),
+                "escalate": bool(result.get("escalate")),
+                "metadata": result.get("metadata", {}),
+            }
+        },
     }
+    # Render/FastAPI version differences can surface nested serialization issues;
+    # force JSON-safe encoding here so the voice endpoint does not fail after successful transcription.
+    return jsonable_encoder(response_payload)
 
 
 @router.post("/voice/transcribe")
