@@ -15,6 +15,12 @@
     commitmentList: document.getElementById("commitmentList"),
     officialChannels: document.getElementById("officialChannels"),
     brandName: document.getElementById("brandName"),
+    brandSub: document.getElementById("brandSub"),
+    topLinkPrimary: document.getElementById("topLinkPrimary"),
+    topLinkSecondary: document.getElementById("topLinkSecondary"),
+    heroTitle: document.getElementById("heroTitle"),
+    heroSubtitle: document.getElementById("heroSubtitle"),
+    resourcePanelTitle: document.getElementById("resourcePanelTitle"),
     continuePhoneBtn: document.getElementById("continuePhoneBtn"),
     continueSmsBtn: document.getElementById("continueSmsBtn"),
     sendSummaryBtn: document.getElementById("sendSummaryBtn"),
@@ -35,6 +41,12 @@
     planContext: document.getElementById("planContext"),
     resourcesToggle: document.getElementById("resourcesToggle"),
     resourcesBody: document.getElementById("resourcesBody"),
+    alertsToggle: document.getElementById("alertsToggle"),
+    alertsBody: document.getElementById("alertsBody"),
+    alertsList: document.getElementById("alertsList"),
+    resolutionToggle: document.getElementById("resolutionToggle"),
+    resolutionBody: document.getElementById("resolutionBody"),
+    resolutionList: document.getElementById("resolutionList"),
     capabilitiesToggle: document.getElementById("capabilitiesToggle"),
     capabilitiesBody: document.getElementById("capabilitiesBody"),
     trackerToggle: document.getElementById("trackerToggle"),
@@ -62,10 +74,12 @@
     lastCapabilities: null,
     lastHealth: null,
     lastResponse: null,
+    lastAlerts: [],
     trackerData: null,
     voiceRetries: 0,
     pendingTranscript: null,
     voiceBackend: { stt: "unknown", tts: "browser" },
+    brand: { name: "Support", callCenterPhone: null },
   };
 
   const nextActionPrompts = {
@@ -82,7 +96,7 @@
     urgent_human_help_if_needed: "I need urgent human support now.",
     human_agent_if_urgent: "I need a human agent.",
     check_rebooking_options: "Check rebooking options now.",
-    contact_bank_if_fraud: "I contacted my bank. What should I do next with Flair?",
+    contact_bank_if_fraud: "I contacted my bank. What should I do next?",
     share_booking_or_transaction_details: "The booking reference is AB12CD.",
   };
 
@@ -225,6 +239,185 @@
 
     els.transcript.appendChild(msg);
     scrollTranscript();
+  }
+
+  function applyBranding(capData) {
+    const branding = capData?.branding || {};
+    const supportContact = capData?.support_contact || {};
+    const productName = branding.product_name || capData?.product_name || "Support";
+    const brandName = branding.brand_name || productName;
+    state.brand = {
+      name: brandName,
+      callCenterPhone: supportContact.call_center_phone || null,
+      accessibilityPhone: supportContact.accessibility_phone || null,
+    };
+    nextActionPrompts.contact_bank_if_fraud = `I contacted my bank. What should I do next with ${brandName}?`;
+    if (els.brandName) els.brandName.textContent = productName;
+    if (els.brandSub) els.brandSub.textContent = "Customer support, chat and voice";
+    if (els.heroTitle && branding.hero_title) els.heroTitle.textContent = branding.hero_title;
+    if (els.heroSubtitle && branding.hero_subtitle) els.heroSubtitle.textContent = branding.hero_subtitle;
+    if (els.resourcePanelTitle) {
+      els.resourcePanelTitle.textContent = branding.resource_panel_title || `Official ${brandName} support links`;
+    }
+    const links = Array.isArray(branding.top_links) ? branding.top_links : [];
+    if (els.topLinkPrimary) {
+      const first = links[0];
+      if (first?.url) {
+        els.topLinkPrimary.href = first.url;
+        els.topLinkPrimary.textContent = first.label || "Official Contact Info";
+        els.topLinkPrimary.classList.remove("hidden");
+      } else {
+        els.topLinkPrimary.classList.add("hidden");
+      }
+    }
+    if (els.topLinkSecondary) {
+      const second = links[1];
+      if (second?.url) {
+        els.topLinkSecondary.href = second.url;
+        els.topLinkSecondary.textContent = second.label || "Help Centre";
+        els.topLinkSecondary.classList.remove("hidden");
+      } else {
+        els.topLinkSecondary.classList.add("hidden");
+      }
+    }
+    const vars = branding.css_vars || {};
+    const root = document.documentElement;
+    if (vars.accent) root.style.setProperty("--accent", String(vars.accent));
+    if (vars.accent_2) root.style.setProperty("--accent-2", String(vars.accent_2));
+    if (vars.surface_tint) root.style.setProperty("--surface-tint", String(vars.surface_tint));
+    if (vars.brand_dark) root.style.setProperty("--brand-dark", String(vars.brand_dark));
+    const brandMark = document.querySelector(".brand-mark");
+    if (brandMark && branding.brand_mark) brandMark.textContent = String(branding.brand_mark).slice(0, 2);
+  }
+
+  function renderResolutionArtifacts(artifacts) {
+    if (!els.resolutionList) return;
+    els.resolutionList.innerHTML = "";
+    const a = artifacts && typeof artifacts === "object" ? artifacts : null;
+    if (!a || !Object.keys(a).length) {
+      els.resolutionList.innerHTML = '<div class="muted">Live status, rebooking options, refund estimates, and other actionable details appear here when available.</div>';
+      return;
+    }
+
+    const addCard = (title, bodyNode, tone) => {
+      const card = document.createElement("div");
+      card.className = `artifact-card${tone ? " " + tone : ""}`;
+      const h = document.createElement("div");
+      h.className = "artifact-title";
+      h.textContent = title;
+      card.appendChild(h);
+      card.appendChild(bodyNode);
+      els.resolutionList.appendChild(card);
+    };
+
+    if (a.flight_status) {
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      const fs = a.flight_status;
+      body.innerHTML = `
+        <div><strong>Flight:</strong> ${fs.flight_number || "Unknown"}</div>
+        <div><strong>Status:</strong> ${String(fs.status || "Unknown").toLowerCase()}</div>
+        <div><strong>Delay:</strong> ${fs.delay_minutes || 0} minutes</div>
+        <div><strong>Gate:</strong> ${fs.departure_gate || "TBD"}</div>
+      `;
+      addCard("Flight status", body, fs.delay_minutes >= 180 ? "warn" : "");
+    }
+
+    if (Array.isArray(a.rebooking_options) && a.rebooking_options.length) {
+      const wrap = document.createElement("div");
+      wrap.className = "artifact-list";
+      a.rebooking_options.forEach((opt) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "artifact-action";
+        row.innerHTML = `<strong>Option ${opt.option}</strong><span>${opt.flight_number || ""} | ${opt.date || ""} | Fare difference $${opt.fare_diff ?? 0} CAD</span>`;
+        row.addEventListener("click", () => sendCustomerMessage(`option ${opt.option}`));
+        wrap.appendChild(row);
+      });
+      addCard("Rebooking options", wrap, "actionable");
+    }
+
+    if (a.compensation_estimate) {
+      const comp = a.compensation_estimate;
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      body.innerHTML = `
+        <div><strong>Estimated compensation:</strong> $${comp.amount ?? 0} ${comp.currency || "CAD"}</div>
+        <div><strong>Rule:</strong> ${comp.regulation_section || "APPR"}</div>
+      `;
+      addCard("Compensation estimate", body, "info");
+    }
+
+    if (a.refund_estimate) {
+      const ref = a.refund_estimate;
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      body.innerHTML = `
+        <div><strong>Estimated refund:</strong> $${ref.amount_cad ?? 0} CAD</div>
+        <div><strong>Timeline:</strong> ${ref.timeline_days ? `Up to ${ref.timeline_days} days` : "Varies by payment method"}</div>
+      `;
+      addCard("Refund options", body, "info");
+    }
+
+    if (a.refund_request?.refund_id) {
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      body.innerHTML = `<div><strong>Request status:</strong> ${a.refund_request.status || "submitted"}</div>`;
+      addCard("Refund submitted", body, "success");
+    }
+
+    if (a.travel_credit?.voucher_code) {
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      body.innerHTML = `<div><strong>Travel credit:</strong> $${a.travel_credit.voucher_value_cad ?? 0} CAD</div>`;
+      addCard("Travel credit issued", body, "success");
+    }
+
+    if (a.grounding) {
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      body.innerHTML = `
+        <div><strong>Official source grounding:</strong> ${a.grounding.source_backed ? "Yes" : "No / limited"}</div>
+        <div><strong>Knowledge snapshot date:</strong> ${a.grounding.snapshot_date || "Unknown"}</div>
+      `;
+      addCard("Answer grounding", body, "subtle");
+    }
+  }
+
+  function renderAlerts(alerts) {
+    if (!els.alertsList) return;
+    els.alertsList.innerHTML = "";
+    if (!Array.isArray(alerts) || !alerts.length) {
+      els.alertsList.innerHTML = '<div class="muted">No active trip alerts in this conversation yet. Ask about a flight or booking to enable proactive recovery suggestions.</div>';
+      return;
+    }
+    alerts.forEach((alert) => {
+      const card = document.createElement("div");
+      card.className = `alert-card ${alert.severity || "info"}`;
+      const title = document.createElement("div");
+      title.className = "alert-title";
+      title.textContent = alert.title || "Trip update";
+      const summary = document.createElement("div");
+      summary.className = "alert-summary";
+      summary.textContent = alert.summary || "";
+      card.appendChild(title);
+      card.appendChild(summary);
+      const actions = Array.isArray(alert.recommended_actions) ? alert.recommended_actions : [];
+      if (actions.length) {
+        const row = document.createElement("div");
+        row.className = "chip-row";
+        actions.slice(0, 4).forEach((a) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "chip action-btn";
+          b.textContent = a.label || "Open";
+          b.addEventListener("click", () => sendCustomerMessage(a.prompt || ""));
+          row.appendChild(b);
+        });
+        card.appendChild(row);
+      }
+      els.alertsList.appendChild(card);
+    });
   }
 
   function renderCustomerPlan(plan) {
@@ -370,10 +563,12 @@
       removeTypingIndicator();
       appendMessage("agent", data.message || data.response_text || "I can help with that.", data);
       renderCustomerPlan(data.customer_plan || null);
+      renderResolutionArtifacts(data.resolution_artifacts || {});
       if (data.follow_up_summary?.summary && data.support_reference) {
         addSystemNote("Summary and next steps are saved for this request.");
       }
       refreshTracker();
+      refreshAlerts();
       setStatus("Connected.");
       if (state.mode === "voice") {
         const spoken = data.spoken_message || data.message || data.response_text || "";
@@ -408,13 +603,17 @@
       const data = await resp.json();
       addSystemNote(data.customer_message || `Prepared continuation to ${toChannel}.`);
       if (toChannel === "phone" && data.phone_number) {
-        addSystemNote(`Call Flair: ${data.phone_number}`);
+        addSystemNote(`Call ${state.brand?.name || "support"}: ${data.phone_number}`);
+      }
+      if (toChannel === "sms" && data.sms_preview) {
+        addSystemNote("SMS summary is ready. You can use Summary if you want a fresh recap after another update.");
       }
       setStatus(`Prepared continuation to ${toChannel}.`);
       refreshTracker();
     } catch (err) {
       if (toChannel === "phone") {
-        addSystemNote("Could not prepare phone continuation automatically. Flair's published call center number is 1-403-709-0808. Wait times may vary.");
+        const phone = state.brand?.callCenterPhone || "the official support number";
+        addSystemNote(`Could not prepare phone continuation automatically. ${state.brand?.name || "Support"}'s published call center number is ${phone}. Wait times may vary.`);
         setStatus("Phone number shown.");
         return;
       }
@@ -449,13 +648,16 @@
     els.transcript.innerHTML = "";
     appendMessage(
       "agent",
-      "New conversation started. I can help with flight status and disruptions, rebooking, cancellations, refunds, baggage issues, accessibility support, and human support handoff."
+      `New conversation started. I can help with flight status and disruptions, rebooking, cancellations, refunds, baggage issues, accessibility support, and human support handoff for ${state.brand?.name || "your trip"}.`
     );
     renderCustomerPlan(null);
+    renderResolutionArtifacts({});
+    renderAlerts([]);
     els.input.value = "";
     setStatus("Connected.");
     addSystemNote("Started a new request.");
     refreshTracker();
+    refreshAlerts();
     renderTechnical();
   }
 
@@ -479,7 +681,7 @@
         setStatus("Summary unavailable yet.");
         return;
       }
-      addSystemNote("Summary prepared.");
+      addSystemNote("Summary prepared. You can continue by SMS or keep going here.");
       refreshTracker();
     } catch (err) {
       addSystemNote(`Could not prepare summary right now. ${String(err)}`);
@@ -513,9 +715,8 @@
       card.className = "tracker-item";
       const top = document.createElement("div");
       top.className = "tracker-top";
-      const intentLabel = String(ref?.metadata?.intent || "").replaceAll("_", " ").trim();
-      const customerLabel = intentLabel ? `${intentLabel.charAt(0).toUpperCase()}${intentLabel.slice(1).toLowerCase()} request` : "Support request";
-      top.innerHTML = `<strong>${customerLabel}</strong><span class="tracker-status">${String(ref.status || "").replaceAll("_", " ")}</span>`;
+      const customerLabel = String(ref.customer_label || "Support request");
+      top.innerHTML = `<strong>${customerLabel}</strong><span class="tracker-status">${String(ref.status_label || ref.status || "").replaceAll("_", " ")}</span>`;
       const sum = document.createElement("div");
       sum.className = "tracker-summary";
       sum.textContent = ref.summary || "Support update available.";
@@ -536,8 +737,30 @@
         });
         card.appendChild(row);
       }
+      if (ref.next_update_hint) {
+        const hint = document.createElement("div");
+        hint.className = "tracker-hint";
+        hint.textContent = ref.next_update_hint;
+        card.appendChild(hint);
+      }
       els.trackerList.appendChild(card);
     });
+  }
+
+  async function refreshAlerts() {
+    if (!els.alertsList) return;
+    try {
+      const url = `/api/v1/customer/alerts?tenant=${encodeURIComponent(state.tenant)}&session_id=${encodeURIComponent(state.sessionId)}&customer_id=${encodeURIComponent(state.customerId)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      state.lastAlerts = Array.isArray(data.alerts) ? data.alerts : [];
+      renderAlerts(state.lastAlerts);
+    } catch (_) {
+      if (!state.lastAlerts?.length) {
+        renderAlerts([]);
+      }
+    }
   }
 
   function triggerUploadPicker() {
@@ -597,6 +820,7 @@
       state.lastCapabilities = capData;
       state.lastHealth = healthData;
       if (capData) {
+        applyBranding(capData);
         els.capabilityList.innerHTML = "";
         (capData.what_it_can_help_with || []).forEach((item) => {
           const li = document.createElement("li");
@@ -612,6 +836,16 @@
         if (capData.product_name) {
           els.brandName.textContent = capData.product_name;
           document.title = capData.product_name;
+        }
+        if (Array.isArray(capData.suggested_starters) && capData.suggested_starters.length && els.quickActions) {
+          const quickButtons = Array.from(els.quickActions.querySelectorAll("button[data-msg]"));
+          capData.suggested_starters.slice(0, quickButtons.length).forEach((starter, idx) => {
+            const btn = quickButtons[idx];
+            if (!btn) return;
+            btn.dataset.msg = starter;
+            btn.textContent = starter.length > 28 ? starter.slice(0, 28).trimEnd() + "..." : starter;
+            btn.title = starter;
+          });
         }
         els.officialChannels.innerHTML = "";
         const entries = capData.official_channel_snapshot?.entries || [];
@@ -875,6 +1109,7 @@
       health: state.lastHealth,
       lastCapabilities: state.lastCapabilities,
       lastResponse: state.lastResponse,
+      lastAlerts: state.lastAlerts,
     };
     els.technicalPre.textContent = JSON.stringify(payload, null, 2);
   }
@@ -914,6 +1149,12 @@
 
     els.planToggle.addEventListener("click", () => toggleCollapse(els.planToggle, els.planBodyWrap));
     els.resourcesToggle.addEventListener("click", () => toggleCollapse(els.resourcesToggle, els.resourcesBody));
+    if (els.alertsToggle && els.alertsBody) {
+      els.alertsToggle.addEventListener("click", () => toggleCollapse(els.alertsToggle, els.alertsBody));
+    }
+    if (els.resolutionToggle && els.resolutionBody) {
+      els.resolutionToggle.addEventListener("click", () => toggleCollapse(els.resolutionToggle, els.resolutionBody));
+    }
     els.capabilitiesToggle.addEventListener("click", () => toggleCollapse(els.capabilitiesToggle, els.capabilitiesBody));
     if (els.trackerToggle && els.trackerBody) {
       els.trackerToggle.addEventListener("click", () => toggleCollapse(els.trackerToggle, els.trackerBody));
@@ -931,8 +1172,11 @@
       "Hello. I can help with flight status and disruptions, rebooking, cancellations, refunds, baggage issues, accessibility support, and connecting you to a human agent if needed."
     );
     renderCustomerPlan(null);
+    renderResolutionArtifacts({});
+    renderAlerts([]);
     loadCapabilities();
     refreshTracker();
+    refreshAlerts();
     renderTechnical();
   }
 

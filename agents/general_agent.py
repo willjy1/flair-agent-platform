@@ -4,13 +4,23 @@ from agents.base import BaseAgent
 from agents.llm_runtime import LLMRuntime
 from memory.vector_store import PolicyVectorStore
 from models.schemas import AgentMessage, AgentResponse, ConversationState
+from tenants.registry import TenantProfile
 
 
 class GeneralAgent(BaseAgent):
-    def __init__(self, vector_store: PolicyVectorStore, llm: LLMRuntime) -> None:
+    def __init__(
+        self,
+        vector_store: PolicyVectorStore,
+        llm: LLMRuntime,
+        tenant_slug: str = "flair",
+        tenant_profile: TenantProfile | None = None,
+    ) -> None:
         super().__init__(name="general_agent")
         self.vector_store = vector_store
         self.llm = llm
+        self.tenant_slug = (tenant_slug or "flair").lower()
+        self.tenant_profile = tenant_profile
+        self.tenant_name = (tenant_profile.display_name if tenant_profile else "Support").replace(" Agents", "")
 
     async def process(self, message: AgentMessage) -> AgentResponse:
         user_text = message.inbound.content
@@ -27,11 +37,11 @@ class GeneralAgent(BaseAgent):
                 next_actions=["continue_current_request", "switch_to_new_request", "human_agent_if_urgent"],
                 metadata={"policy_hits": hits, "llm_provider": "rule_general", "llm_model": "n/a"},
             )
-        response_text = self._flair_specific_answer(lower)
+        response_text = self._tenant_specific_answer(lower)
         if response_text is None:
             llm_result = await self.llm.generate(
                 system_prompt=(
-                    "You are a customer-facing Flair Airlines support assistant. "
+                    f"You are a customer-facing {self.tenant_name} support assistant. "
                     "Be clear, efficient, and kind. Answer the customer's question directly first, then ask only for the minimum details needed. "
                     "Use policy_hits as your factual source. If the needed fact is not in policy_hits, say you are not certain and point to the best official next step instead of guessing."
                 ),
@@ -74,3 +84,8 @@ class GeneralAgent(BaseAgent):
                 "I can show the official contact page and relevant Help Centre links for your issue."
             )
         return None
+
+    def _tenant_specific_answer(self, lower: str) -> str | None:
+        if self.tenant_slug != "flair":
+            return None
+        return self._flair_specific_answer(lower)

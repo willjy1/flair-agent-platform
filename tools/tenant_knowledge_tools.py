@@ -99,8 +99,16 @@ class TenantKnowledgeTools:
 
     def benchmark_vs_platform(self, platform_capabilities: Dict[str, bool]) -> dict:
         baseline = self.snapshot.get("comparison_baseline", {})
-        current_strengths = list(baseline.get("current_flair_strengths", []))
-        current_gaps = list(baseline.get("current_flair_gaps_observed_or_likely", []))
+        current_strengths = list(
+            baseline.get("current_strengths")
+            or baseline.get("current_flair_strengths")
+            or []
+        )
+        current_gaps = list(
+            baseline.get("current_gaps_observed_or_likely")
+            or baseline.get("current_flair_gaps_observed_or_likely")
+            or []
+        )
         capability_groups = {
             "omnichannel_orchestration": ["web_chat", "sms", "social", "voice", "email"],
             "agentic_resolution": ["booking_changes", "refunds", "disruption_status", "appr_compensation", "baggage", "accessibility", "human_handoff"],
@@ -119,4 +127,3 @@ class TenantKnowledgeTools:
             "platform_capability_scores": scores,
             "sources": self._source_index(),
         }
-

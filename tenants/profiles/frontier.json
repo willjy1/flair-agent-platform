@@ -1,0 +1,108 @@
+{
+  "slug": "frontier",
+  "display_name": "Frontier Support Agents",
+  "vertical": "travel",
+  "category": "ulcc_airline",
+  "locale": "en-US",
+  "support_experience_name": "Frontier Support",
+  "customer_capabilities": [
+    "flight status and disruption recovery",
+    "rebooking, changes, and cancellations",
+    "refund, credit, and charge issue guidance",
+    "baggage delay/damage support intake",
+    "accessibility and special services support",
+    "human handoff with conversation context"
+  ],
+  "channels": [
+    "web chat",
+    "voice (phone-capable backend + web voice simulation)",
+    "sms / WhatsApp-style continuation summary",
+    "email",
+    "social"
+  ],
+  "support_commitments": [
+    "Keep context in one conversation so customers do not need to repeat details.",
+    "Move from problem to next step quickly instead of sending customers into support loops.",
+    "Use official Frontier pages, forms, and FAQ guidance when self-service or escalation is best.",
+    "Prepare handoff context for human agents when needed."
+  ],
+  "citations_by_intent_topics": {
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "REFUND": ["payments_refunds", "contact"],
+    "CANCELLATION": ["booking_changes", "payments_refunds", "contact"],
+    "BOOKING_CHANGE": ["booking_changes", "contact"],
+    "DELAY_INFO": ["contact", "digital_self_service", "disruption"],
+    "IRROPS": ["contact", "digital_self_service", "disruption", "customer_sentiment_signal"],
+    "COMPENSATION_CLAIM": ["disruption", "contact"],
+    "BAGGAGE": ["baggage", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "digital_self_service"]
+  },
+  "official_channel_topics": ["contact", "digital_self_service", "accessibility", "baggage"],
+  "self_service_options": {
+    "DELAY_INFO": [
+      { "label": "Customer Support Hub", "url": "https://www.flyfrontier.com/customer-support", "description": "Official Frontier customer support page with flight status, rebooking/refund, and support options." },
+      { "label": "My Trip / Check-In", "url": "https://travel.flyfrontier.com/", "description": "Official Frontier trip management and check-in portal." },
+      { "label": "Flight Status FAQ", "url": "https://faq.flyfrontier.com/help/flight-status", "description": "Official Frontier FAQ flight status articles and update guidance." }
+    ],
+    "IRROPS": [
+      { "label": "Rebooking / Refund Options", "url": "https://travel.flyfrontier.com/", "description": "Official Frontier portal used for rebooking or refund after cancellation/significant delay." },
+      { "label": "Customer Support Hub", "url": "https://www.flyfrontier.com/customer-support", "description": "Official support page with call/chat/text and special forms." },
+      { "label": "Flight Delay FAQ", "url": "https://faq.flyfrontier.com/help/my-flight-is-delayed-less-than-3-hours-what-should-i-expect", "description": "Official Frontier delay expectations guidance and status-check instructions." }
+    ],
+    "BOOKING_CHANGE": [
+      { "label": "My Trip / Check-In", "url": "https://travel.flyfrontier.com/", "description": "Official Frontier trip management portal." },
+      { "label": "Customer Support Hub", "url": "https://www.flyfrontier.com/customer-support", "description": "Official support and special request forms." },
+      { "label": "Missed Flight FAQ", "url": "https://faq.flyfrontier.com/help/i-missed-my-flight-what-do-i-do", "description": "Official Frontier missed flight/no-show guidance." }
+    ],
+    "CANCELLATION": [
+      { "label": "Customer Support Hub", "url": "https://www.flyfrontier.com/customer-support", "description": "Official support page with refund request and delay/cancellation options." },
+      { "label": "Refund After Cancellation FAQ", "url": "https://faq.flyfrontier.com/help/do-i-get-a-refund-if-my-flight-is-changed-or-cancelled-by-frontier", "description": "Official Frontier refund/rebooking guidance after cancellation or major delay." }
+    ],
+    "REFUND": [
+      { "label": "Refund Policy FAQ", "url": "https://faq.flyfrontier.com/help/can-i-get-a-refund-if-i-cancel-my-flight", "description": "Official Frontier refund eligibility overview." },
+      { "label": "Customer Support Hub", "url": "https://www.flyfrontier.com/customer-support", "description": "Official support page and refund request path." },
+      { "label": "Payment History FAQ", "url": "https://faq.flyfrontier.com/help/where-can-i-find-my-history-of-payments-refunds-and-credit-card-charges", "description": "Official Frontier payment/refund history guidance." }
+    ],
+    "BAGGAGE": [
+      { "label": "Delayed/Damaged Bag Support", "url": "https://www.flyfrontier.com/customer-support", "description": "Official Frontier support page with baggage assistance options." },
+      { "label": "Baggage FAQ (Delayed/Damaged/Missing)", "url": "https://faq.flyfrontier.com/help/bags-delayed-damage-and-missing-items", "description": "Official Frontier baggage issue FAQ category." }
+    ],
+    "ACCESSIBILITY": [
+      { "label": "Accessibility / Special Services Request", "url": "https://www.flyfrontier.com/customer-support", "description": "Official Frontier support page with accessibility request entry point." },
+      { "label": "Special Services FAQ", "url": "https://faq.flyfrontier.com/help/how-to-add-or-modify-special-services", "description": "Official Frontier FAQ for adding or changing special services." }
+    ],
+    "COMPLAINT": [
+      { "label": "Share Feedback", "url": "https://www.flyfrontier.com/customer-support", "description": "Official Frontier support page with feedback/complaint path." },
+      { "label": "How to Contact Frontier", "url": "https://faq.flyfrontier.com/help/how-do-i-contact-frontier-airlines", "description": "Official Frontier contact channels FAQ." }
+    ],
+    "GENERAL_INQUIRY": [
+      { "label": "Frontier Customer Support", "url": "https://www.flyfrontier.com/customer-support", "description": "Official Frontier customer support hub." },
+      { "label": "Frontier FAQ", "url": "https://faq.flyfrontier.com/", "description": "Official Frontier FAQ help center." }
+    ],
+    "COMPENSATION_CLAIM": [
+      { "label": "Delay / Cancellation Refund FAQ", "url": "https://faq.flyfrontier.com/help/do-i-get-a-refund-if-my-flight-is-changed-or-cancelled-by-frontier", "description": "Official Frontier delay/cancellation refund guidance." },
+      { "label": "Customer Support Hub", "url": "https://www.flyfrontier.com/customer-support", "description": "Official Frontier support page." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "country_focus": "United States",
+    "carrier_type": "ULCC",
+    "company_name": "Frontier",
+    "call_center_phone": "801-401-9000",
+    "contact_page_url": "https://www.flyfrontier.com/customer-support",
+    "help_center_url": "https://faq.flyfrontier.com/",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "F",
+    "hero_title": "Get help with your Frontier trip in one conversation.",
+    "hero_subtitle": "Text or voice. Get clear next steps for delays, missed flights, rebooking, refunds, baggage, accessibility, and human support without starting over.",
+    "resource_panel_title": "Official Frontier support links",
+    "brand_theme": {
+      "accent": "#4ea53c",
+      "accent_2": "#1c6b2e",
+      "surface_tint": "#f2fbef",
+      "brand_dark": "#0f2f19"
+    }
+  }
+}

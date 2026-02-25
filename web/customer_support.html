@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title id="pageTitle">Flair Support</title>
-  <link rel="stylesheet" href="/static/customer_support.css?v=20260226e" />
+  <title id="pageTitle">Support</title>
+  <link rel="stylesheet" href="/static/customer_support.css?v=20260226f" />
 </head>
 <body>
   <div class="page-shell">
@@ -12,20 +12,20 @@
       <div class="brand-wrap">
         <div class="brand-mark" aria-hidden="true">f</div>
         <div class="brand-text">
-          <div class="brand-name" id="brandName">Flair Support</div>
-          <div class="brand-sub">Customer support, chat and voice</div>
+          <div class="brand-name" id="brandName">Support</div>
+          <div class="brand-sub" id="brandSub">Customer support, chat and voice</div>
         </div>
       </div>
       <nav class="top-links" aria-label="Official support links">
-        <a href="https://www.flyflair.com/support/contact-info" target="_blank" rel="noreferrer">Official Contact Info</a>
-        <a href="https://flyflair.zendesk.com/hc/en-us" target="_blank" rel="noreferrer">Help Centre</a>
+        <a id="topLinkPrimary" href="#" target="_blank" rel="noreferrer">Official Contact Info</a>
+        <a id="topLinkSecondary" href="#" target="_blank" rel="noreferrer">Help Centre</a>
       </nav>
     </header>
 
     <main class="content">
       <section class="hero">
-        <h1>Get help with your trip in one conversation.</h1>
-        <p>Text or voice. Get clear next steps for flight status, disruptions, booking changes, refunds, baggage, accessibility, and human support without starting over.</p>
+        <h1 id="heroTitle">Get help with your trip in one conversation.</h1>
+        <p id="heroSubtitle">Text or voice. Get clear next steps for flight status, disruptions, booking changes, refunds, baggage, accessibility, and human support without starting over.</p>
       </section>
 
       <section class="support-card" aria-label="Customer support chat and voice">
@@ -111,6 +111,24 @@
               </section>
 
               <section class="panel collapse">
+                <button id="alertsToggle" class="panel-toggle" type="button" aria-expanded="false">Trip alerts and recovery options</button>
+                <div id="alertsBody" class="panel-body hidden">
+                  <div id="alertsList" class="alerts-list">
+                    <div class="muted">If your trip is delayed or cancelled, suggested recovery options will appear here.</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel collapse">
+                <button id="resolutionToggle" class="panel-toggle" type="button" aria-expanded="false">Resolution details</button>
+                <div id="resolutionBody" class="panel-body hidden">
+                  <div id="resolutionList" class="resolution-list">
+                    <div class="muted">Live status, rebooking options, refund estimates, and other actionable details appear here when available.</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel collapse">
                 <button id="trackerToggle" class="panel-toggle" type="button" aria-expanded="false">Requests and updates</button>
                 <div id="trackerBody" class="panel-body hidden">
                   <div class="panel-actions">
@@ -123,7 +141,7 @@
               </section>
 
               <section class="panel collapse">
-                <button id="resourcesToggle" class="panel-toggle" type="button" aria-expanded="false">Official Flair support links</button>
+                <button id="resourcesToggle" class="panel-toggle" type="button" aria-expanded="false"><span id="resourcePanelTitle">Official support links</span></button>
                 <div id="resourcesBody" class="panel-body hidden">
                   <div id="officialChannels" class="link-list"></div>
                 </div>
@@ -158,6 +176,6 @@
     </main>
   </div>
 
-  <script src="/static/customer_support.js?v=20260226e"></script>
+  <script src="/static/customer_support.js?v=20260226f"></script>
 </body>
 </html>

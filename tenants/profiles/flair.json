@@ -92,7 +92,20 @@
   "hidden_from_customer_marketing": true,
   "metadata": {
     "country_focus": "Canada",
-    "carrier_type": "ULCC"
+    "carrier_type": "ULCC",
+    "company_name": "Flair",
+    "call_center_phone": "1-403-709-0808",
+    "accessibility_phone": "1-833-382-5421",
+    "contact_page_url": "https://www.flyflair.com/support/contact-info",
+    "help_center_url": "https://flyflair.zendesk.com/hc/en-us",
+    "wait_time_disclaimer": "Wait times may vary.",
+    "brand_mark": "f",
+    "resource_panel_title": "Official Flair support links",
+    "brand_theme": {
+      "accent": "#ff6a13",
+      "accent_2": "#0d6a6a",
+      "surface_tint": "#fff7f0",
+      "brand_dark": "#111827"
+    }
   }
 }
-

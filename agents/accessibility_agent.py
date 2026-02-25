@@ -25,7 +25,7 @@ class AccessibilityAgent(BaseAgent):
                 state=ConversationState.CONFIRMING,
                 response_text=(
                     "I can help document your accessibility request and route it as a priority support request. "
-                    "For urgent assistance, Flair's published accessibility line is 1-877-291-9427. "
+                    "For urgent assistance, Flair's published accessibility line is 1-833-382-5421. "
                     "Please tell me the type of assistance you need and, if available, your flight number or booking reference."
                 ),
                 agent=self.name,

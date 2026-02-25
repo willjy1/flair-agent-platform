@@ -1,0 +1,94 @@
+{
+  "snapshot_date": "2026-02-26",
+  "carrier": "Frontier Airlines",
+  "entries": [
+    {
+      "id": "frontier-customer-support-hub-channels",
+      "topic": "contact",
+      "tags": ["customer_support", "call", "chat", "text", "forms", "24_7"],
+      "text": "Frontier's official customer support page advertises support agents available 24/7 via call, chat, or text, and also routes customers to self-service and special forms for common issues.",
+      "source_url": "https://www.flyfrontier.com/customer-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-rebooking-refund-options-portal",
+      "topic": "disruption",
+      "tags": ["rebooking", "refund", "delay", "cancellation", "portal"],
+      "text": "Frontier's support page directs customers affected by significant delays or cancellations to a rebooking and refund options portal, separate from the general support page flow.",
+      "source_url": "https://www.flyfrontier.com/customer-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-mytrip-checkin-portal",
+      "topic": "digital_self_service",
+      "tags": ["my_trip", "check_in", "self_service", "travel_portal"],
+      "text": "Frontier's customer support page links to the My Trip / Check-In portal for self-service trip management and check-in actions.",
+      "source_url": "https://travel.flyfrontier.com/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-baggage-support-routes",
+      "topic": "baggage",
+      "tags": ["delayed_bag", "damaged_bag", "nettracer", "support"],
+      "text": "Frontier's support page includes baggage-related assistance routes (including delayed/damaged baggage support and a baggage service office locator / tracking path), indicating baggage support is spread across multiple specialized surfaces.",
+      "source_url": "https://www.flyfrontier.com/customer-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-accessibility-special-services",
+      "topic": "accessibility",
+      "tags": ["special_services", "accessibility", "request_form", "faq"],
+      "text": "Frontier's support page and FAQ include dedicated paths for accessibility and special services requests, including a support request entry point and FAQ articles for adding or modifying special services.",
+      "source_url": "https://faq.flyfrontier.com/help/how-to-add-or-modify-special-services",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-refund-faq-guidance",
+      "topic": "payments_refunds",
+      "tags": ["refund", "cancellation", "delay", "faq"],
+      "text": "Frontier's FAQ includes separate articles for cancellation refunds, delay/cancellation-related refund eligibility, and payment/refund history, which can force customers to navigate multiple pages to understand their exact path.",
+      "source_url": "https://faq.flyfrontier.com/help/can-i-get-a-refund-if-i-cancel-my-flight",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-missed-flight-faq",
+      "topic": "booking_changes",
+      "tags": ["missed_flight", "no_show", "faq"],
+      "text": "Frontier's FAQ includes a dedicated missed-flight article, which is a high-friction customer issue that benefits from fast triage and rebooking guidance rather than generic contact routing.",
+      "source_url": "https://faq.flyfrontier.com/help/i-missed-my-flight-what-do-i-do",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "frontier-trustpilot-service-signal",
+      "topic": "customer_sentiment_signal",
+      "tags": ["trustpilot", "reviews", "service_quality", "complaints"],
+      "text": "Trustpilot's Frontier review page (user-generated) shows a very low score with recurring complaints about support, cancellations, and refund handling. This is a directional signal, not an official Frontier source.",
+      "source_url": "https://www.trustpilot.com/review/flyfrontier.com",
+      "source_type": "third_party_reviews",
+      "effective_date": "2026-02-26"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official customer support hub clearly lists multiple support channels (call, chat, text)",
+      "24/7 support availability is advertised on the official support page",
+      "Strong self-service surfaces (My Trip / Check-In and special support forms)",
+      "Large official FAQ catalog for common support issues",
+      "Dedicated pages/paths for baggage and special services"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Support and resolution steps remain fragmented across support hub, FAQ pages, travel portal, and specialized forms",
+      "No public evidence of one conversation that carries context across text, voice, and handoff",
+      "No public indication of proactive disruption concierge behavior with recovery options in one thread",
+      "No public customer-visible request tracker that follows a case through chat/voice to resolution",
+      "Customers likely need to self-select the correct support path before the system helps them"
+    ]
+  }
+}

@@ -75,7 +75,12 @@ class OrchestratorAgent(BaseAgent):
         self.sentiment_agent = SentimentAgent()
         self.triage_agent = TriageAgent(llm=self.llm)
         self.specialists: Dict[str, BaseAgent] = {
-            "general_agent": GeneralAgent(self.vector_store, llm=self.llm),
+            "general_agent": GeneralAgent(
+                self.vector_store,
+                llm=self.llm,
+                tenant_slug=self.tenant_slug,
+                tenant_profile=self.tenant_profile,
+            ),
             "booking_agent": BookingAgent(self.booking_tools, self.notification_tools, self.customer_profiles),
             "refund_agent": RefundAgent(self.booking_tools, self.compliance_tools, self.payment_tools),
             "baggage_agent": BaggageAgent(self.crm_tools),
@@ -364,6 +369,14 @@ class OrchestratorAgent(BaseAgent):
         response.metadata.setdefault("sentiment", sentiment)
         response.metadata.setdefault("llm", {"provider": self.llm.provider, "model": self.llm.model})
         self._attach_flair_support_context(response, triage.intent.value)
+        response.metadata.setdefault(
+            "grounding",
+            {
+                "source_backed": bool(response.metadata.get("citations") or response.metadata.get("official_next_steps")),
+                "snapshot_date": self.knowledge_tools.snapshot.get("snapshot_date"),
+                "tenant": self.tenant_slug,
+            },
+        )
         self._apply_response_presentation_prefs(response, inbound)
         response.metadata.setdefault(
             "customer_plan",
@@ -620,7 +633,7 @@ class OrchestratorAgent(BaseAgent):
         elif str(md.get("priority_lane") or "") == "accessibility":
             common_commitments.insert(0, "I will treat this as an accessibility-priority support request.")
 
-        return {
+        plan = {
             "intent": plan_intent,
             "stage": stage,
             "escalate": response.escalate,
@@ -629,6 +642,7 @@ class OrchestratorAgent(BaseAgent):
             "prepared_context": prepared_context,
             "service_commitments": common_commitments,
         }
+        return self._retarget_brand_in_obj(plan)
 
     def _apply_followup_override(self, user_text: str, triage: TriageResult, entities: Dict[str, object]) -> TriageResult:
         lower = user_text.strip().lower()
@@ -792,7 +806,7 @@ class OrchestratorAgent(BaseAgent):
                 customer_id=inbound.customer_id,
                 state=ConversationState.CONFIRMING,
                 response_text=(
-                    "Understood. I can pause the request here. If you need urgent accessibility assistance, Flair's published accessibility line is 1-877-291-9427."
+                    "Understood. I can pause the request here. If you need urgent accessibility assistance, Flair's published accessibility line is 1-833-382-5421."
                     + trip_hint
                 ),
                 intent=last_intent,
@@ -917,6 +931,7 @@ class OrchestratorAgent(BaseAgent):
         }
         for bad, good in replacements.items():
             clean = clean.replace(bad, good)
+        clean = self._retarget_brand_text(clean)
         clean = re.sub(r"\s{2,}", " ", clean).strip()
         return clean
 
@@ -971,9 +986,9 @@ class OrchestratorAgent(BaseAgent):
         rewritten = self._sanitize_customer_text(llm_result.text)
         if not rewritten or len(rewritten) < 18:
             return response
-        old_num = "1-403-709-0808"
-        if old_num in response.response_text and old_num not in rewritten:
-            rewritten = f"{rewritten} Flair's published call center number is {old_num}. Wait times may vary."
+        call_center = self._tenant_call_center_number()
+        if call_center and call_center in response.response_text and call_center not in rewritten:
+            rewritten = f"{rewritten} {self._tenant_brand_display()} published call center number is {call_center}. Wait times may vary."
         response.response_text = rewritten
         response.metadata["llm_rewritten"] = True
         response.metadata["llm_rewriter"] = {"provider": llm_result.provider, "model": llm_result.model}
@@ -1028,3 +1043,54 @@ class OrchestratorAgent(BaseAgent):
         if "voucher" in md and isinstance(md.get("voucher"), dict):
             updates["_last_voucher"] = md["voucher"]
         return updates
+
+    def _tenant_brand_display(self) -> str:
+        if self.tenant_profile and self.tenant_profile.display_name:
+            return self.tenant_profile.display_name.replace(" Agents", "")
+        return "Support"
+
+    def _tenant_call_center_number(self) -> str | None:
+        md = (self.tenant_profile.metadata if self.tenant_profile else {}) or {}
+        for key in ["call_center_phone", "primary_support_phone", "support_phone"]:
+            value = md.get(key)
+            if value:
+                return str(value)
+        return None
+
+    def _tenant_accessibility_number(self) -> str | None:
+        md = (self.tenant_profile.metadata if self.tenant_profile else {}) or {}
+        for key in ["accessibility_phone", "accessibility_support_phone"]:
+            value = md.get(key)
+            if value:
+                return str(value)
+        return None
+
+    def _retarget_brand_text(self, text: str) -> str:
+        clean = str(text or "")
+        if self.tenant_slug == "flair":
+            return clean
+        brand = self._tenant_brand_display()
+        call_center = self._tenant_call_center_number()
+        accessibility_phone = self._tenant_accessibility_number()
+        # Replace Flair-specific references so white-label tenants do not expose wrong brand/call numbers.
+        clean = clean.replace("Flair Airlines", brand)
+        clean = clean.replace("Flair's", f"{brand}'s")
+        clean = clean.replace("Flair ", f"{brand} ")
+        clean = clean.replace(" Flair", f" {brand}")
+        if call_center:
+            clean = clean.replace("1-403-709-0808", call_center)
+        if accessibility_phone:
+            clean = clean.replace("1-877-291-9427", accessibility_phone)
+            clean = clean.replace("1-833-382-5421", accessibility_phone)
+        return clean
+
+    def _retarget_brand_in_obj(self, value):
+        if self.tenant_slug == "flair":
+            return value
+        if isinstance(value, str):
+            return self._retarget_brand_text(value)
+        if isinstance(value, list):
+            return [self._retarget_brand_in_obj(v) for v in value]
+        if isinstance(value, dict):
+            return {k: self._retarget_brand_in_obj(v) for k, v in value.items()}
+        return value

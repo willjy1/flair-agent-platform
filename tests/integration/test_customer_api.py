@@ -28,6 +28,24 @@ def test_customer_capabilities_supports_hidden_tenant_profile():
     assert "Airline Support Agents" in data["product_name"]
 
 
+def test_customer_capabilities_supports_frontier_tenant_profile():
+    client = TestClient(create_app())
+    resp = client.get("/api/v1/customer/capabilities?tenant=frontier")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["tenant"] == "frontier"
+    assert "Frontier" in data["product_name"]
+    assert isinstance(data.get("branding"), dict)
+    assert data["branding"]["brand_name"].lower().startswith("frontier")
+
+
+def test_support_frontier_route_serves_customer_page():
+    client = TestClient(create_app())
+    resp = client.get("/support/frontier")
+    assert resp.status_code == 200
+    assert "customer_support.js" in resp.text
+
+
 def test_customer_message_returns_citations_and_next_steps():
     client = TestClient(create_app())
     resp = client.post(
@@ -100,6 +118,7 @@ def test_continue_channel_prepares_reference():
     data = cont.json()
     assert data["ok"] is True
     assert data["reference"].startswith("SUP-")
+    assert "support reference" not in data.get("customer_message", "").lower()
 
 
 def test_continue_channel_sms_and_phone_work_without_existing_session():
@@ -119,6 +138,7 @@ def test_continue_channel_sms_and_phone_work_without_existing_session():
         assert data["ok"] is True
         assert data["reference"].startswith("SUP-")
         assert data["to_channel"] == channel
+        assert "support reference" not in (data.get("customer_message") or "").lower()
 
 
 def test_follow_up_summary_without_session_returns_clear_message():
@@ -168,6 +188,7 @@ def test_customer_voice_simulate_returns_customer_payload_shape():
     assert "message" in data
     assert "spoken_message" in data
     assert isinstance(data.get("customer_plan"), dict)
+    assert isinstance(data.get("resolution_artifacts"), dict)
 
 
 def test_charge_issue_prompt_does_not_500_and_stays_refund_domain():
@@ -231,3 +252,25 @@ def test_customer_session_reset_endpoint_clears_conversation():
     )
     assert reset.status_code == 200
     assert reset.json()["ok"] is True
+
+
+def test_customer_alerts_returns_disruption_alert_when_session_has_delayed_flight():
+    client = TestClient(create_app())
+    session_id = "cust-alert-1"
+    customer_id = "cust-a1"
+    client.post(
+        "/api/v1/customer/message",
+        json={
+            "session_id": session_id,
+            "customer_id": customer_id,
+            "channel": "web",
+            "content": "What is the status of flight F81234?",
+        },
+    )
+    resp = client.get(f"/api/v1/customer/alerts?session_id={session_id}&customer_id={customer_id}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["ok"] is True
+    assert isinstance(data.get("alerts"), list)
+    if data["alerts"]:
+        assert "recommended_actions" in data["alerts"][0]
