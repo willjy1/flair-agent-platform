@@ -408,9 +408,25 @@
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       addSystemNote(data.customer_message || `Prepared continuation to ${toChannel}.`);
+      if (toChannel === "phone" && data.phone_number) {
+        addSystemNote(`Call Flair: ${data.phone_number}`);
+      }
+      if (toChannel === "sms" && data.sms_preview) {
+        addSystemNote(`SMS-ready summary: ${data.sms_preview}`);
+      }
       setStatus(`Prepared continuation to ${toChannel}.`);
       refreshTracker();
     } catch (err) {
+      if (toChannel === "phone") {
+        addSystemNote("Could not prepare phone continuation automatically. Flair's published call center number is 1-403-709-0808. Wait times may vary.");
+        setStatus("Phone number shown.");
+        return;
+      }
+      if (toChannel === "sms") {
+        addSystemNote("Could not prepare SMS continuation automatically. You can still use Summary to prepare a support recap, or continue by phone.");
+        setStatus("SMS continuation unavailable.");
+        return;
+      }
       addSystemNote(`Could not prepare ${toChannel} continuation. ${String(err)}`);
     }
   }
@@ -461,7 +477,12 @@
         }),
       });
       const data = await resp.json();
-      if (!resp.ok || !data.ok) throw new Error(data.detail || data.error || "summary_failed");
+      if (!resp.ok) throw new Error(data.detail || data.error || "summary_failed");
+      if (!data.ok) {
+        addSystemNote(data.message || "Ask a question first, then I can prepare a summary.");
+        setStatus("Summary unavailable yet.");
+        return;
+      }
       addSystemNote(`Summary prepared${data.payload?.support_reference ? ` for ${data.payload.support_reference}` : ""}.`);
       refreshTracker();
     } catch (err) {
@@ -759,7 +780,7 @@
       state.voiceBackend.stt = data.provider || "server";
       state.pendingTranscript = data.text || "";
       const confPct = Math.round((Number(data.confidence) || 0) * 100);
-      const backendLine = `Server transcription active (${data.provider}${data.model ? ` / ${data.model}` : ""})${Number.isFinite(confPct) ? ` · ${confPct}% confidence` : ""}.`;
+      const backendLine = `Server transcription active (${data.provider}${data.model ? ` / ${data.model}` : ""})${Number.isFinite(confPct) ? ` - ${confPct}% confidence` : ""}.`;
       setVoiceStatusHint(`Heard: "${data.text}"`, backendLine);
       renderTechnical();
       if (data.needs_confirmation) {

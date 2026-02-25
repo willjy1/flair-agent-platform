@@ -102,6 +102,43 @@ def test_continue_channel_prepares_reference():
     assert data["reference"].startswith("SUP-")
 
 
+def test_continue_channel_sms_and_phone_work_without_existing_session():
+    client = TestClient(create_app())
+    for channel in ("phone", "sms"):
+        cont = client.post(
+            "/api/v1/customer/continue-channel",
+            json={
+                "session_id": "missing-session",
+                "customer_id": "cust-demo",
+                "from_channel": "web_chat",
+                "to_channel": channel,
+            },
+        )
+        assert cont.status_code == 200
+        data = cont.json()
+        assert data["ok"] is True
+        assert data["reference"].startswith("SUP-")
+        assert data["to_channel"] == channel
+
+
+def test_follow_up_summary_without_session_returns_clear_message():
+    client = TestClient(create_app())
+    resp = client.post(
+        "/api/v1/customer/follow-up-summary",
+        json={
+            "session_id": "no-session-yet",
+            "customer_id": "cust-no-session",
+            "channel": "web",
+            "delivery_channel": "sms",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["ok"] is False
+    assert data["error"] == "session_not_found"
+    assert "Ask a question first" in data["message"]
+
+
 def test_customer_voice_transcribe_short_audio_returns_clear_error():
     client = TestClient(create_app())
     resp = client.post(
@@ -131,6 +168,23 @@ def test_customer_voice_simulate_returns_customer_payload_shape():
     assert "message" in data
     assert "spoken_message" in data
     assert isinstance(data.get("customer_plan"), dict)
+
+
+def test_charge_issue_prompt_does_not_500_and_stays_refund_domain():
+    client = TestClient(create_app())
+    resp = client.post(
+        "/api/v1/customer/message",
+        json={
+            "session_id": "charge-int-1",
+            "customer_id": "cust-charge-1",
+            "channel": "web",
+            "content": "charge issue",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["agent"] in {"refund_agent", "support_fallback"}
+    assert "charge" in data["message"].lower() or "refund" in data["message"].lower()
 
 
 def test_customer_rebooking_followup_option_selection_executes_change():
