@@ -155,6 +155,14 @@ class DisruptionAgent(BaseAgent):
     def _session_age_seconds(self, updated_at: object) -> float | None:
         if not updated_at:
             return None
+        try:
+            raw = str(updated_at).replace("Z", "+00:00")
+            dt = datetime.fromisoformat(raw)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return (datetime.now(timezone.utc) - dt.astimezone(timezone.utc)).total_seconds()
+        except Exception:
+            return None
 
     def _entity_age_seconds(self, message: AgentMessage, field: str) -> float | None:
         ctx_window = message.context.get("context_window") if isinstance(message.context, dict) else None
@@ -165,14 +173,6 @@ class DisruptionAgent(BaseAgent):
             return None
         try:
             return float(ages.get(field))
-        except Exception:
-            return None
-        try:
-            raw = str(updated_at).replace("Z", "+00:00")
-            dt = datetime.fromisoformat(raw)
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            return (datetime.now(timezone.utc) - dt.astimezone(timezone.utc)).total_seconds()
         except Exception:
             return None
 

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+import time
+import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 from threading import Lock
@@ -9,6 +12,8 @@ from typing import Any, Dict, Optional
 
 from models.schemas import ConversationState, SessionContext
 from settings import SETTINGS
+
+logger = logging.getLogger(__name__)
 
 
 class SessionMemoryStore:
@@ -54,10 +59,31 @@ class SessionMemoryStore:
             "sessions": {k: v.model_dump(mode="json") for k, v in self._sessions.items()},
             "touch": {k: ts.isoformat() for k, ts in self._touch.items()},
         }
-        tmp = f"{self.path}.tmp"
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(payload, fh, ensure_ascii=True)
-        os.replace(tmp, self.path)
+        last_err: Exception | None = None
+        for attempt in range(5):
+            tmp = f"{self.path}.{uuid.uuid4().hex}.tmp"
+            try:
+                with open(tmp, "w", encoding="utf-8") as fh:
+                    json.dump(payload, fh, ensure_ascii=True)
+                os.replace(tmp, self.path)
+                return
+            except PermissionError as exc:
+                last_err = exc
+                try:
+                    if os.path.exists(tmp):
+                        os.remove(tmp)
+                except Exception:
+                    pass
+                time.sleep(0.03 * (attempt + 1))
+            except Exception as exc:
+                last_err = exc
+                try:
+                    if os.path.exists(tmp):
+                        os.remove(tmp)
+                except Exception:
+                    pass
+                break
+        logger.warning("session_memory_persist_failed", extra={"path": self.path, "error": repr(last_err)})
 
     def _expire_if_needed(self, key: str) -> None:
         last_touch = self._touch.get(key)

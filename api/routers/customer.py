@@ -227,6 +227,118 @@ def _promise_keeper_present(items: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
+def _apply_truthfulness_guard_to_customer_payload(payload: Dict[str, Any], orchestrator, contact_ctx: Dict[str, Any]) -> Dict[str, Any]:
+    """Prevent customer-facing false specificity when live systems are not connected."""
+    if not isinstance(payload, dict):
+        return payload
+    caps = {}
+    try:
+        caps = orchestrator.platform_capabilities_matrix()
+    except Exception:
+        caps = {}
+    real_booking = bool(caps.get("real_booking_system_api"))
+    real_flight = bool(caps.get("real_flight_status_api"))
+    real_crm = bool(caps.get("real_crm_integration"))
+    brand = str(contact_ctx.get("brand") or _tenant_brand_name(orchestrator) or "Support")
+    contact_page = str(contact_ctx.get("contact_page_url") or "").strip()
+
+    artifacts = payload.get("resolution_artifacts")
+    if not isinstance(artifacts, dict):
+        artifacts = {}
+    simulation_notes: List[str] = []
+
+    # Mark/strip simulated artifacts.
+    if artifacts.get("flight_status") and not real_flight:
+        if isinstance(artifacts.get("flight_status"), dict):
+            artifacts["flight_status"]["simulated"] = True
+        simulation_notes.append("Live status lookup is not connected in this demo.")
+    if artifacts.get("rebooking_options") and not real_booking:
+        simulation_notes.append("Rebooking options are a demo preview, not live inventory.")
+        # Keep options but mark them as simulated so UI can avoid implying execution.
+        for opt in artifacts.get("rebooking_options", []):
+            if isinstance(opt, dict):
+                opt["simulated"] = True
+    if artifacts.get("refund_request") and not real_booking:
+        simulation_notes.append("Refund submission is simulated in this demo.")
+        if isinstance(artifacts.get("refund_request"), dict):
+            artifacts["refund_request"]["simulated"] = True
+            artifacts["refund_request"].pop("refund_id", None)
+    if artifacts.get("travel_credit") and not real_booking:
+        simulation_notes.append("Travel credit issuance is simulated in this demo.")
+        if isinstance(artifacts.get("travel_credit"), dict):
+            artifacts["travel_credit"]["simulated"] = True
+            artifacts["travel_credit"].pop("voucher_code", None)
+    if artifacts.get("compensation_estimate") and not real_flight:
+        simulation_notes.append("Compensation estimate is a demo calculation until live status data is connected.")
+        if isinstance(artifacts.get("compensation_estimate"), dict):
+            artifacts["compensation_estimate"]["simulated"] = True
+    if payload.get("agent") in {"accessibility_agent", "complaint_agent", "baggage_agent", "escalation_agent"} and not real_crm:
+        simulation_notes.append("Case creation and handoff tracking are simulated in this demo.")
+
+    payload["resolution_artifacts"] = artifacts
+
+    # Rewrite customer-visible text if it claims a completed real action.
+    msg = str(payload.get("message") or "")
+    lower = msg.lower()
+    next_actions = [str(x) for x in (payload.get("next_actions") or [])]
+    intent = str(payload.get("intent") or "")
+
+    def set_msg(text: str) -> None:
+        payload["message"] = text
+        if "spoken_message" in payload:
+            payload["spoken_message"] = text
+
+    if not real_booking:
+        if "started a refund" in lower or "issued a travel credit" in lower:
+            text = (
+                f"I can guide this {brand} refund or credit request and prepare the right next step, "
+                "but this demo is not connected to the live payment or booking systems, so nothing has been submitted yet."
+            )
+            if contact_page:
+                text += f" You can continue through {brand}'s official support page: {contact_page}"
+            set_msg(text)
+            payload["state"] = "CONFIRMING"
+            payload["agent"] = "truthfulness_guard"
+            payload["next_actions"] = ["continue_current_request", "human_agent_if_urgent"]
+        elif "you're rebooked" in lower or "has been cancelled" in lower:
+            text = (
+                f"I can prepare rebooking or cancellation guidance for {brand}, but this demo is not connected to the live booking system, "
+                "so no booking change has been made yet."
+            )
+            if contact_page:
+                text += f" If you want to complete the change right now, use {brand}'s official support or self-service page: {contact_page}"
+            set_msg(text)
+            payload["state"] = "CONFIRMING"
+            payload["agent"] = "truthfulness_guard"
+            payload["next_actions"] = ["continue_current_request", "human_agent_if_urgent"]
+
+    if not real_flight and intent in {"DELAY_INFO", "IRROPS"} and "currently" in lower and "flight " in lower and artifacts.get("flight_status"):
+        # Avoid presenting simulated status as a live factual statement.
+        text = (
+            "I can guide flight status and disruption support, but this demo does not use the company's live flight-status feed. "
+            "If you share your flight number or booking reference, I can show the support path and next steps."
+        )
+        if contact_page:
+            text += f" For official live updates, use {brand}'s official support or status pages: {contact_page}"
+        set_msg(text)
+        payload["agent"] = "truthfulness_guard"
+        payload["state"] = "CONFIRMING"
+        payload["next_actions"] = ["provide_flight_number_or_booking_reference"]
+
+    # Add a compact truthfulness marker in metadata for UI/technical views.
+    payload.setdefault("grounding", {})
+    if isinstance(payload["grounding"], dict):
+        payload["grounding"]["demo_truthfulness_guard"] = True
+        payload["grounding"]["live_systems_connected"] = {
+            "booking": real_booking,
+            "flight_status": real_flight,
+            "crm": real_crm,
+        }
+    if simulation_notes:
+        payload["simulation_notes"] = simulation_notes[:5]
+    return payload
+
+
 def _tenant_profile(orchestrator) -> Any:
     return getattr(orchestrator, "tenant_profile", None)
 
@@ -637,6 +749,187 @@ def _safe_customer_error_result(
     return payload
 
 
+def _contextual_customer_error_result(
+    *,
+    tenant_slug: str,
+    message_text: str,
+    session_id: str,
+    customer_id: str,
+    channel: str,
+    mode: str,
+    orchestrator,
+    contact_ctx: Dict[str, Any],
+    voice: bool = False,
+) -> Dict[str, Any]:
+    brand_name = str(contact_ctx.get("brand") or _tenant_brand_name(orchestrator) or "Support")
+    phone_number = str(contact_ctx.get("call_center_phone") or "the official support number")
+    payload = _safe_customer_error_result(
+        tenant_slug=tenant_slug,
+        session_id=session_id,
+        customer_id=customer_id,
+        channel=channel,
+        mode=mode,
+        message_text=message_text,
+        voice=voice,
+        brand_name=brand_name,
+        phone_number=phone_number,
+    )
+    profile = _tenant_profile(orchestrator)
+    vertical = str(getattr(profile, "vertical", "") or "").lower()
+    lower = (message_text or "").strip().lower()
+
+    def set_response(message: str, next_actions: List[str], intent: str | None, plan_can: List[str], plan_need: List[str]) -> None:
+        payload["message"] = message
+        if voice:
+            payload["spoken_message"] = message
+        payload["next_actions"] = next_actions
+        payload["intent"] = intent
+        payload["agent"] = "contextual_recovery"
+        payload["state"] = "CONFIRMING"
+        payload["customer_plan"] = {
+            "intent": intent or "GENERAL_INQUIRY",
+            "stage": "RECOVERY",
+            "what_i_can_do_now": plan_can,
+            "what_i_need_from_you": plan_need,
+            "prepared_context": [],
+            "service_commitments": ["I will keep this conversation context so you do not need to start over."],
+        }
+        payload["promise_ledger"] = [
+            {
+                "id": "context_continuity",
+                "title": "No-repeat continuity",
+                "summary": "I will keep your details in this conversation so you do not have to repeat them.",
+                "status": "active",
+            },
+            {
+                "id": "recovery_retry",
+                "title": "Support recovery path",
+                "summary": "I switched to a simpler support path so you can keep going without starting over.",
+                "status": "active",
+            },
+        ]
+        payload["promise_keeper"] = _promise_keeper_present(list(payload["promise_ledger"]))
+
+    # Travel / airline recovery prompts
+    if vertical == "travel":
+        if "flight status" in lower or (("flight" in lower or "trip" in lower) and "status" in lower):
+            set_response(
+                "I can still help with flight status. Please share your flight number (for example F81234) or your booking reference so I can check the latest status.",
+                ["provide_flight_number_or_booking_reference"],
+                "DELAY_INFO",
+                ["Check flight status", "Guide the next step if there is a delay or cancellation"],
+                ["Flight number or booking reference"],
+            )
+            return payload
+        if any(k in lower for k in ["refund", "charge issue", "billing issue", "charged twice", "unauthorized charge"]):
+            set_response(
+                "I can still help with refund or charge support. Please share your booking reference, or tell me if this is an unauthorized charge, duplicate charge, or incorrect charge.",
+                ["provide_booking_reference", "share_booking_or_transaction_details"],
+                "REFUND",
+                ["Guide refund or charge issue next steps", "Prepare a support handoff if needed"],
+                ["Booking reference or transaction details"],
+            )
+            return payload
+        if any(k in lower for k in ["missed flight", "missed my flight", "no-show"]):
+            set_response(
+                f"I can still help with a missed flight. Please share your booking reference first. If this is urgent and you need to travel soon, {brand_name}'s published call center number is {phone_number} (wait times may vary).",
+                ["provide_booking_reference", "urgent_human_help_if_needed"],
+                "BOOKING_CHANGE",
+                ["Check the booking and missed-flight options", "Prepare urgent rebooking guidance"],
+                ["Booking reference", "Whether you still need to travel today"],
+            )
+            return payload
+
+    # Insurance
+    if vertical == "insurance":
+        if "claim" in lower and "status" in lower:
+            set_response(
+                "I can still help with claim status. Please share your claim number, or tell me what kind of claim this is and when it was filed.",
+                ["share_claim_number", "provide_policy_number"],
+                "GENERAL_INQUIRY",
+                ["Guide claim status follow-up", "Prepare the right claim support path"],
+                ["Claim number or claim details"],
+            )
+            return payload
+        if any(k in lower for k in ["billing", "premium", "payment issue", "charge issue"]):
+            set_response(
+                "I can still help with a billing or premium issue. Please share the policy details or describe the charge so I can guide the next step.",
+                ["provide_policy_number", "share_booking_or_transaction_details"],
+                "GENERAL_INQUIRY",
+                ["Guide billing support steps", "Prepare a handoff if needed"],
+                ["Policy details or charge information"],
+            )
+            return payload
+
+    # Health plans
+    if vertical == "health":
+        if "prior authorization" in lower or "prior auth" in lower:
+            set_response(
+                "I can still help with prior authorization support. Please share the prior authorization reference if you have it, or tell me the service and provider involved.",
+                ["provide_prior_authorization_reference"],
+                "GENERAL_INQUIRY",
+                ["Guide prior authorization support steps", "Prepare a member-support handoff if needed"],
+                ["Prior authorization reference or service details"],
+            )
+            return payload
+        if "claim" in lower and "status" in lower:
+            set_response(
+                "I can still help with medical claim status. Please share the claim reference, member ID, or the date of service so I can guide the next step.",
+                ["share_claim_number", "provide_member_id"],
+                "GENERAL_INQUIRY",
+                ["Guide claim status follow-up", "Prepare member support context"],
+                ["Claim reference, member ID, or date of service"],
+            )
+            return payload
+
+    # Utilities / telecom
+    if vertical in {"utilities", "telecom", "isp"}:
+        if any(k in lower for k in ["outage", "power is out", "internet is down", "service down"]):
+            set_response(
+                "I can still help with outage or service interruption support. Please share your service address or account details so I can guide the outage or status next step.",
+                ["provide_service_address", "provide_account_number"],
+                "GENERAL_INQUIRY",
+                ["Guide outage/service status steps", "Prepare support follow-up if needed"],
+                ["Service address or account details"],
+            )
+            return payload
+        if "billing" in lower or "bill" in lower:
+            set_response(
+                "I can still help with a billing issue. Please share your account details or describe the billing problem so I can guide the fastest next step.",
+                ["provide_account_number"],
+                "GENERAL_INQUIRY",
+                ["Guide billing support steps", "Prepare a support continuation summary"],
+                ["Account details or billing issue details"],
+            )
+            return payload
+
+    # Parcel/logistics
+    if vertical in {"parcel", "logistics"} or "tracking" in lower or "package" in lower:
+        if any(k in lower for k in ["where is my package", "tracking", "package status", "shipment status"]):
+            set_response(
+                "I can still help with package tracking. Please share the tracking number so I can guide the next step.",
+                ["share_tracking_number", "provide_order_number"],
+                "GENERAL_INQUIRY",
+                ["Guide tracking and delivery issue support", "Prepare claim support if needed"],
+                ["Tracking number or order number"],
+            )
+            return payload
+
+    # Generic recovery (still customer-safe and useful)
+    contact_page = str(contact_ctx.get("contact_page_url") or "").strip()
+    generic = "I can still help with that. Please share one key detail (for example an account, booking, claim, or tracking reference) so I can guide the fastest next step."
+    if contact_page:
+        generic += f" If you prefer official support channels right now, use {brand_name}'s support page: {contact_page}"
+    set_response(
+        generic,
+        ["continue_current_request", "human_agent_if_urgent"],
+        "GENERAL_INQUIRY",
+        ["Continue the request in this conversation", "Prepare a human support continuation if needed"],
+        ["One key reference or detail about the issue"],
+    )
+    return payload
+
+
 @router.get("", response_class=HTMLResponse)
 async def customer_support_page() -> HTMLResponse:
     html_path = Path(__file__).resolve().parents[2] / "web" / "customer_support.html"
@@ -742,20 +1035,24 @@ async def customer_message(payload: CustomerMessageRequest, request: Request):
             result["official_next_steps"] = []
             if len(result.get("self_service_options") or []) > 1:
                 result["self_service_options"] = list(result["self_service_options"][:1])
+        result = _apply_truthfulness_guard_to_customer_payload(result, orchestrator, contact_ctx)
         result["support_reference"] = support_reference
         result["follow_up_summary"] = _build_follow_up_summary(payload.content, result)
-        return result
+        return jsonable_encoder(result)
     except Exception:
         logger.exception("customer_message_endpoint_failed", extra={"tenant": tenant_slug, "session_id": payload.session_id})
-        return _safe_customer_error_result(
-            tenant_slug=tenant_slug,
-            session_id=payload.session_id,
-            customer_id=payload.customer_id,
-            channel=payload.channel.value,
-            mode="voice" if payload.channel == ChannelType.VOICE else "text",
-            message_text=payload.content,
-            brand_name=str(contact_ctx.get("brand") or "Flair"),
-            phone_number=str(contact_ctx.get("call_center_phone") or "1-403-709-0808"),
+        return jsonable_encoder(
+            _contextual_customer_error_result(
+                tenant_slug=tenant_slug,
+                message_text=payload.content,
+                session_id=payload.session_id,
+                customer_id=payload.customer_id,
+                channel=payload.channel.value,
+                mode="voice" if payload.channel == ChannelType.VOICE else "text",
+                orchestrator=orchestrator,
+                contact_ctx=contact_ctx,
+                voice=payload.channel == ChannelType.VOICE,
+            )
         )
 
 
@@ -825,22 +1122,23 @@ async def customer_voice_simulate(payload: CustomerMessageRequest, request: Requ
             }
         }
         response_payload["resolution_artifacts"] = _response_resolution_artifacts(response_payload, (result.get("metadata") or {}) if isinstance(result.get("metadata"), dict) else {})
+        response_payload = _apply_truthfulness_guard_to_customer_payload(response_payload, orchestrator, contact_ctx)
         # Render/FastAPI version differences can surface nested serialization issues;
         # force JSON-safe encoding here so the voice endpoint does not fail after successful transcription.
         return jsonable_encoder(response_payload)
     except Exception:
         logger.exception("customer_voice_simulate_failed", extra={"tenant": tenant_slug, "session_id": payload.session_id})
         return jsonable_encoder(
-            _safe_customer_error_result(
+            _contextual_customer_error_result(
                 tenant_slug=tenant_slug,
+                message_text=payload.content,
                 session_id=payload.session_id,
                 customer_id=payload.customer_id,
                 channel="voice",
                 mode="voice",
-                message_text=payload.content,
+                orchestrator=orchestrator,
+                contact_ctx=contact_ctx,
                 voice=True,
-                brand_name=str(contact_ctx.get("brand") or "Flair"),
-                phone_number=str(contact_ctx.get("call_center_phone") or "1-403-709-0808"),
             )
         )
 
