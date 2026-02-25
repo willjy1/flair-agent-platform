@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 import difflib
+import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +22,7 @@ from tools.document_intake_tools import DocumentIntakeTools
 
 
 router = APIRouter(prefix="/customer", tags=["customer"])
+logger = logging.getLogger(__name__)
 
 
 class CustomerMessageRequest(BaseModel):
@@ -184,6 +186,57 @@ def _reference_payload(record: SupportReferenceRecord) -> Dict[str, Any]:
     }
 
 
+def _safe_customer_error_result(
+    *,
+    tenant_slug: str,
+    session_id: str,
+    customer_id: str,
+    channel: str,
+    mode: str,
+    message_text: str,
+    voice: bool = False,
+) -> Dict[str, Any]:
+    base_message = (
+        "I ran into a problem while handling that request. Please try again in a moment. "
+        "If this is urgent, Flair's published call center number is 1-403-709-0808 (wait times may vary)."
+    )
+    spoken = (
+        "I ran into a problem handling that request. Please try again, or call Flair at 1-403-709-0808. Wait times may vary."
+    )
+    payload = {
+        "session_id": session_id,
+        "customer_id": customer_id,
+        "tenant": tenant_slug,
+        "channel": channel,
+        "mode": mode,
+        "message": base_message,
+        "state": "PROCESSING",
+        "agent": "support_fallback",
+        "intent": None,
+        "next_actions": ["retry_request", "human_agent_if_urgent"],
+        "escalate": False,
+        "citations": [],
+        "official_next_steps": [],
+        "self_service_options": [],
+        "customer_plan": {
+            "intent": "GENERAL_INQUIRY",
+            "stage": "RECOVERY",
+            "what_i_can_do_now": [
+                "retry your request",
+                "continue with a human support handoff",
+            ],
+            "what_i_need_from_you": ["retry the request or choose phone support if urgent"],
+            "prepared_context": [],
+        },
+        "support_reference": None,
+        "debug": {"error": "customer_endpoint_failed"},
+    }
+    if voice:
+        payload["spoken_message"] = spoken
+    payload["follow_up_summary"] = _build_follow_up_summary(message_text, payload)
+    return payload
+
+
 @router.get("", response_class=HTMLResponse)
 async def customer_support_page() -> HTMLResponse:
     html_path = Path(__file__).resolve().parents[2] / "web" / "customer_support.html"
@@ -196,159 +249,184 @@ async def customer_support_page() -> HTMLResponse:
 async def customer_message(payload: CustomerMessageRequest, request: Request):
     tenant_slug = _resolve_tenant_slug(request, payload.tenant)
     orchestrator = _orchestrator(request, tenant_slug)
-    response = await orchestrator.route_message(
-        InboundMessage(
-            session_id=payload.session_id,
-            customer_id=payload.customer_id,
-            channel=payload.channel,
-            content=payload.content,
-            attachments=payload.attachments,
-            metadata={**payload.metadata, "tenant": tenant_slug},
-        )
-    )
-    support_reference = None
-    if response.escalate:
-        support_reference = f"SUP-{uuid.uuid4().hex[:8].upper()}"
-        _reference_store(request).upsert(
-            SupportReferenceRecord(
-                reference=support_reference,
-                tenant=tenant_slug,
-                customer_id=payload.customer_id,
+    try:
+        response = await orchestrator.route_message(
+            InboundMessage(
                 session_id=payload.session_id,
-                status=response.state.value,
-                channel=payload.channel.value,
-                summary=response.response_text[:600],
-                next_steps=list(response.next_actions or []),
-                metadata={"agent": response.agent, "intent": response.intent.value if response.intent else None},
+                customer_id=payload.customer_id,
+                channel=payload.channel,
+                content=payload.content,
+                attachments=payload.attachments,
+                metadata={**payload.metadata, "tenant": tenant_slug},
             )
         )
-    result = {
-        "session_id": response.session_id,
-        "customer_id": response.customer_id,
-        "tenant": tenant_slug,
-        "channel": payload.channel.value,
-        "mode": "voice" if payload.channel == ChannelType.VOICE else "text",
-        "message": response.response_text,
-        "state": response.state.value,
-        "agent": response.agent,
-        "intent": response.intent.value if response.intent else None,
-        "next_actions": response.next_actions,
-        "escalate": response.escalate,
-        "citations": response.metadata.get("citations", []),
-        "official_next_steps": response.metadata.get("official_next_steps", []),
-        "self_service_options": response.metadata.get("self_service_options", []),
-        "customer_plan": response.metadata.get("customer_plan", {}),
-        "support_reference": support_reference,
-        "debug": {
-            "tool_calls": [t.model_dump(mode="json") for t in response.tool_calls],
-        },
-    }
-    debug_tool_calls = list(result["debug"]["tool_calls"])
-    if _looks_trackable_response(result.get("intent"), result.get("state", ""), result.get("agent", ""), debug_tool_calls, result):
-        existing = _reference_store(request).latest_for_session(tenant_slug, payload.customer_id, payload.session_id)
-        if existing and existing.status in {"CONFIRMING", "PROCESSING", "RESOLVED", "ESCALATED"}:
-            existing.status = result["state"]
-            existing.channel = payload.channel.value
-            existing.summary = str(result.get("message") or "")[:600]
-            existing.next_steps = list(result.get("next_actions") or [])
-            existing.metadata = {
-                **dict(existing.metadata or {}),
-                "agent": result.get("agent"),
-                "intent": result.get("intent"),
-                "trackable": True,
-            }
-            _reference_store(request).upsert(existing)
-            _reference_store(request).append_event(existing.reference, "agent_update", existing.summary, {"state": existing.status, "intent": result.get("intent")})
-            support_reference = support_reference or existing.reference
-        elif not support_reference:
-            auto_ref = f"SUP-{uuid.uuid4().hex[:8].upper()}"
+        support_reference = None
+        if response.escalate:
+            support_reference = f"SUP-{uuid.uuid4().hex[:8].upper()}"
             _reference_store(request).upsert(
                 SupportReferenceRecord(
-                    reference=auto_ref,
+                    reference=support_reference,
                     tenant=tenant_slug,
                     customer_id=payload.customer_id,
                     session_id=payload.session_id,
-                    status=result["state"],
+                    status=response.state.value,
                     channel=payload.channel.value,
-                    summary=str(result.get("message") or "")[:600],
-                    next_steps=list(result.get("next_actions") or []),
-                    metadata={"agent": result.get("agent"), "intent": result.get("intent"), "trackable": True},
-                    events=[{"type": "agent_update", "summary": str(result.get("message") or "")[:400], "metadata": {"state": result["state"], "intent": result.get("intent")}, "timestamp": datetime.utcnow().isoformat()}],
+                    summary=response.response_text[:600],
+                    next_steps=list(response.next_actions or []),
+                    metadata={"agent": response.agent, "intent": response.intent.value if response.intent else None},
                 )
             )
-            support_reference = auto_ref
-    if response.metadata.get("followup_choice"):
-        result["citations"] = []
-        result["official_next_steps"] = []
-        if len(result.get("self_service_options") or []) > 1:
-            result["self_service_options"] = list(result["self_service_options"][:1])
-    result["support_reference"] = support_reference
-    result["follow_up_summary"] = _build_follow_up_summary(payload.content, result)
-    return result
+        result = {
+            "session_id": response.session_id,
+            "customer_id": response.customer_id,
+            "tenant": tenant_slug,
+            "channel": payload.channel.value,
+            "mode": "voice" if payload.channel == ChannelType.VOICE else "text",
+            "message": response.response_text,
+            "state": response.state.value,
+            "agent": response.agent,
+            "intent": response.intent.value if response.intent else None,
+            "next_actions": response.next_actions,
+            "escalate": response.escalate,
+            "citations": response.metadata.get("citations", []),
+            "official_next_steps": response.metadata.get("official_next_steps", []),
+            "self_service_options": response.metadata.get("self_service_options", []),
+            "customer_plan": response.metadata.get("customer_plan", {}),
+            "support_reference": support_reference,
+            "debug": {
+                "tool_calls": [t.model_dump(mode="json") for t in response.tool_calls],
+            },
+        }
+        debug_tool_calls = list(result["debug"]["tool_calls"])
+        if _looks_trackable_response(result.get("intent"), result.get("state", ""), result.get("agent", ""), debug_tool_calls, result):
+            existing = _reference_store(request).latest_for_session(tenant_slug, payload.customer_id, payload.session_id)
+            if existing and existing.status in {"CONFIRMING", "PROCESSING", "RESOLVED", "ESCALATED"}:
+                existing.status = result["state"]
+                existing.channel = payload.channel.value
+                existing.summary = str(result.get("message") or "")[:600]
+                existing.next_steps = list(result.get("next_actions") or [])
+                existing.metadata = {
+                    **dict(existing.metadata or {}),
+                    "agent": result.get("agent"),
+                    "intent": result.get("intent"),
+                    "trackable": True,
+                }
+                _reference_store(request).upsert(existing)
+                _reference_store(request).append_event(existing.reference, "agent_update", existing.summary, {"state": existing.status, "intent": result.get("intent")})
+                support_reference = support_reference or existing.reference
+            elif not support_reference:
+                auto_ref = f"SUP-{uuid.uuid4().hex[:8].upper()}"
+                _reference_store(request).upsert(
+                    SupportReferenceRecord(
+                        reference=auto_ref,
+                        tenant=tenant_slug,
+                        customer_id=payload.customer_id,
+                        session_id=payload.session_id,
+                        status=result["state"],
+                        channel=payload.channel.value,
+                        summary=str(result.get("message") or "")[:600],
+                        next_steps=list(result.get("next_actions") or []),
+                        metadata={"agent": result.get("agent"), "intent": result.get("intent"), "trackable": True},
+                        events=[{"type": "agent_update", "summary": str(result.get("message") or "")[:400], "metadata": {"state": result["state"], "intent": result.get("intent")}, "timestamp": datetime.utcnow().isoformat()}],
+                    )
+                )
+                support_reference = auto_ref
+        if response.metadata.get("followup_choice"):
+            result["citations"] = []
+            result["official_next_steps"] = []
+            if len(result.get("self_service_options") or []) > 1:
+                result["self_service_options"] = list(result["self_service_options"][:1])
+        result["support_reference"] = support_reference
+        result["follow_up_summary"] = _build_follow_up_summary(payload.content, result)
+        return result
+    except Exception:
+        logger.exception("customer_message_endpoint_failed", extra={"tenant": tenant_slug, "session_id": payload.session_id})
+        return _safe_customer_error_result(
+            tenant_slug=tenant_slug,
+            session_id=payload.session_id,
+            customer_id=payload.customer_id,
+            channel=payload.channel.value,
+            mode="voice" if payload.channel == ChannelType.VOICE else "text",
+            message_text=payload.content,
+        )
 
 
 @router.post("/voice/simulate")
 async def customer_voice_simulate(payload: CustomerMessageRequest, request: Request):
     tenant_slug = _resolve_tenant_slug(request, payload.tenant)
     orchestrator = _orchestrator(request, tenant_slug)
-    voice_handler = VoiceHandler(orchestrator)
-    result = await voice_handler.handle_transcript(
-        contact_id=payload.session_id,
-        customer_id=payload.customer_id,
-        transcript=payload.content,
-        metadata={"channel": "customer_voice_web_sim", "tenant": tenant_slug, **payload.metadata},
-    )
-    support_reference = None
-    if result.get("escalate"):
-        support_reference = f"SUP-{uuid.uuid4().hex[:8].upper()}"
-        _reference_store(request).upsert(
-            SupportReferenceRecord(
-                reference=support_reference,
-                tenant=tenant_slug,
-                customer_id=payload.customer_id,
+    try:
+        voice_handler = VoiceHandler(orchestrator)
+        result = await voice_handler.handle_transcript(
+            contact_id=payload.session_id,
+            customer_id=payload.customer_id,
+            transcript=payload.content,
+            metadata={"channel": "customer_voice_web_sim", "tenant": tenant_slug, **payload.metadata},
+        )
+        support_reference = None
+        if result.get("escalate"):
+            support_reference = f"SUP-{uuid.uuid4().hex[:8].upper()}"
+            _reference_store(request).upsert(
+                SupportReferenceRecord(
+                    reference=support_reference,
+                    tenant=tenant_slug,
+                    customer_id=payload.customer_id,
+                    session_id=payload.session_id,
+                    status=str(result.get("state") or "ESCALATED"),
+                    channel="voice",
+                    summary=str(result.get("full_text") or result.get("say_text") or "")[:600],
+                    next_steps=list(result.get("next_actions") or []),
+                    metadata={"agent": result.get("agent"), "intent": result.get("metadata", {}).get("triage", {}).get("intent") if isinstance(result.get("metadata"), dict) else None},
+                )
+            )
+        response_payload = {
+            "session_id": payload.session_id,
+            "customer_id": payload.customer_id,
+            "tenant": tenant_slug,
+            "channel": "voice",
+            "mode": "voice",
+            "message": result.get("full_text") or result.get("say_text") or "",
+            "spoken_message": result.get("say_text") or result.get("full_text") or "",
+            "state": result.get("state"),
+            "agent": result.get("agent"),
+            "intent": (
+                (result.get("metadata") or {}).get("triage", {}).get("intent")
+                if isinstance(result.get("metadata"), dict)
+                else None
+            ),
+            "next_actions": result.get("next_actions", []),
+            "escalate": bool(result.get("escalate")),
+            "citations": result.get("citations", []),
+            "official_next_steps": result.get("official_next_steps", []),
+            "self_service_options": result.get("self_service_options", []),
+            "customer_plan": result.get("customer_plan", {}),
+            "support_reference": support_reference,
+            "debug": {
+                "voice_simulation": {
+                    "agent": result.get("agent"),
+                    "state": result.get("state"),
+                    "next_actions": result.get("next_actions", []),
+                    "escalate": bool(result.get("escalate")),
+                    "metadata": result.get("metadata", {}),
+                }
+            }
+        }
+        # Render/FastAPI version differences can surface nested serialization issues;
+        # force JSON-safe encoding here so the voice endpoint does not fail after successful transcription.
+        return jsonable_encoder(response_payload)
+    except Exception:
+        logger.exception("customer_voice_simulate_failed", extra={"tenant": tenant_slug, "session_id": payload.session_id})
+        return jsonable_encoder(
+            _safe_customer_error_result(
+                tenant_slug=tenant_slug,
                 session_id=payload.session_id,
-                status=str(result.get("state") or "ESCALATED"),
+                customer_id=payload.customer_id,
                 channel="voice",
-                summary=str(result.get("full_text") or result.get("say_text") or "")[:600],
-                next_steps=list(result.get("next_actions") or []),
-                metadata={"agent": result.get("agent"), "intent": result.get("metadata", {}).get("triage", {}).get("intent") if isinstance(result.get("metadata"), dict) else None},
+                mode="voice",
+                message_text=payload.content,
+                voice=True,
             )
         )
-    response_payload = {
-        "session_id": payload.session_id,
-        "customer_id": payload.customer_id,
-        "tenant": tenant_slug,
-        "channel": "voice",
-        "mode": "voice",
-        "message": result.get("full_text") or result.get("say_text") or "",
-        "spoken_message": result.get("say_text") or result.get("full_text") or "",
-        "state": result.get("state"),
-        "agent": result.get("agent"),
-        "intent": (
-            (result.get("metadata") or {}).get("triage", {}).get("intent")
-            if isinstance(result.get("metadata"), dict)
-            else None
-        ),
-        "next_actions": result.get("next_actions", []),
-        "escalate": bool(result.get("escalate")),
-        "citations": result.get("citations", []),
-        "official_next_steps": result.get("official_next_steps", []),
-        "self_service_options": result.get("self_service_options", []),
-        "customer_plan": result.get("customer_plan", {}),
-        "support_reference": support_reference,
-        "debug": {
-            "voice_simulation": {
-                "agent": result.get("agent"),
-                "state": result.get("state"),
-                "next_actions": result.get("next_actions", []),
-                "escalate": bool(result.get("escalate")),
-                "metadata": result.get("metadata", {}),
-            }
-        },
-    }
-    # Render/FastAPI version differences can surface nested serialization issues;
-    # force JSON-safe encoding here so the voice endpoint does not fail after successful transcription.
-    return jsonable_encoder(response_payload)
 
 
 @router.post("/voice/transcribe")
@@ -460,11 +538,15 @@ async def continue_channel(payload: ContinueChannelRequest, request: Request):
     tenant_slug = _resolve_tenant_slug(request, payload.tenant)
     orchestrator = _orchestrator(request, tenant_slug)
     ctx = await orchestrator.session_memory.get_by_session_id(payload.session_id)
-    if not ctx or ctx.customer_id != payload.customer_id:
+    # For phone/SMS continuation, always return something useful even if the session is new or expired.
+    to_channel = payload.to_channel.lower()
+    if (not ctx or ctx.customer_id != payload.customer_id) and to_channel not in {"phone", "sms"}:
         raise HTTPException(status_code=404, detail="session_not_found")
     reference = f"SUP-{uuid.uuid4().hex[:8].upper()}"
-    recent = ctx.history[-6:]
+    recent = ctx.history[-6:] if ctx and ctx.customer_id == payload.customer_id else []
     summary = " ".join([f"{m.get('role')}: {m.get('content')}" for m in recent])[:600]
+    if not summary:
+        summary = f"Customer requested continuation to {to_channel} support."
     _reference_store(request).upsert(
         SupportReferenceRecord(
             reference=reference,
@@ -489,16 +571,33 @@ async def continue_channel(payload: ContinueChannelRequest, request: Request):
             "tenant": tenant_slug,
         },
     )
+    official_phone_number = "1-403-709-0808" if to_channel == "phone" else None
+    if to_channel == "phone":
+        customer_message = (
+            f"You can continue by phone. Your support reference is {reference}. "
+            "Flair's published call center number is 1-403-709-0808. Wait times may vary. "
+            "I prepared your recent conversation details so you do not need to start over."
+        )
+    elif to_channel == "sms":
+        customer_message = (
+            f"I prepared an SMS-ready continuation summary with support reference {reference}. "
+            "Use this reference if you continue by text so you do not need to start over."
+        )
+    else:
+        customer_message = (
+            f"You can continue on {to_channel}. Your support reference is {reference}. "
+            "I've prepared your recent conversation details so you do not need to start over."
+        )
     return {
         "ok": True,
         "tenant": tenant_slug,
         "reference": reference,
         "from_channel": payload.from_channel,
-        "to_channel": payload.to_channel,
-        "customer_message": (
-            f"You can continue on {payload.to_channel}. Your support reference is {reference}. "
-            "I've prepared your recent conversation details so you do not need to start over."
-        ),
+        "to_channel": to_channel,
+        "phone_number": official_phone_number,
+        "sms_ready": to_channel == "sms",
+        "sms_preview": summary[:280] if to_channel == "sms" else None,
+        "customer_message": customer_message,
         "handoff_summary_preview": summary,
     }
 
@@ -543,7 +642,12 @@ async def create_follow_up_summary(payload: FollowUpSummaryRequest, request: Req
     orchestrator = _orchestrator(request, tenant_slug)
     ctx = await orchestrator.session_memory.get_by_session_id(payload.session_id)
     if not ctx or ctx.customer_id != payload.customer_id:
-        raise HTTPException(status_code=404, detail="session_not_found")
+        return {
+            "ok": False,
+            "tenant": tenant_slug,
+            "error": "session_not_found",
+            "message": "Ask a question first, then I can generate a summary and support reference.",
+        }
     recent = ctx.history[-8:]
     last_agent = next((str(m.get("content") or "") for m in reversed(recent) if m.get("role") == "assistant"), "")
     last_user = next((str(m.get("content") or "") for m in reversed(recent) if m.get("role") == "user"), "")

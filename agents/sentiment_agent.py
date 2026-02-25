@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
+import re
 from typing import Deque, Dict
 
 from agents.base import BaseAgent
@@ -14,6 +15,10 @@ class SentimentAgent(BaseAgent):
 
     def analyze(self, session_id: str, text: str) -> Dict[str, object]:
         lower = text.lower()
+        def has_term(term: str) -> bool:
+            if " " in term:
+                return term in lower
+            return bool(re.search(rf"\b{re.escape(term)}\b", lower))
         negative_hits = sum(
             1
             for token in [
@@ -27,9 +32,9 @@ class SentimentAgent(BaseAgent):
                 "sue",
                 "lawyer",
             ]
-            if token in lower
+            if has_term(token)
         )
-        positive_hits = sum(1 for token in ["thanks", "thank you", "great", "helpful"] if token in lower)
+        positive_hits = sum(1 for token in ["thanks", "thank you", "great", "helpful"] if has_term(token))
         valence = max(-1.0, min(1.0, (positive_hits - negative_hits) * 0.35))
         if "!" in text and negative_hits:
             valence = max(-1.0, valence - 0.2)
@@ -44,7 +49,7 @@ class SentimentAgent(BaseAgent):
                 consecutive_negative += 1
             else:
                 break
-        legal_risk = any(k in lower for k in ["lawyer", "legal", "court", "sue", "cbc", "media"])
+        legal_risk = any(has_term(k) for k in ["lawyer", "legal", "court", "sue", "cbc", "media"])
         escalate = legal_risk or consecutive_negative >= 3
         preamble = ""
         if arousal == "high" and valence < -0.2:
@@ -69,4 +74,3 @@ class SentimentAgent(BaseAgent):
             agent=self.name,
             metadata={"sentiment": sentiment},
         )
-

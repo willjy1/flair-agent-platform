@@ -30,6 +30,20 @@ class RefundAgent(BaseAgent):
         pending_refund = entities.get("_pending_refund_amount_cad")
         last_next_actions = [str(x) for x in (entities.get("_last_next_actions") or [])] if isinstance(entities.get("_last_next_actions"), list) else []
 
+        if any(k in text for k in ["charge issue", "billing issue", "payment issue"]):
+            return AgentResponse(
+                session_id=message.inbound.session_id,
+                customer_id=message.inbound.customer_id,
+                state=ConversationState.CONFIRMING,
+                response_text=(
+                    "I can help with a charge issue. Is it an unauthorized charge, a duplicate charge, or an incorrect amount? "
+                    "If you already have the booking reference, you can share it now and I will guide the next step."
+                ),
+                agent=self.name,
+                next_actions=["share_booking_or_transaction_details", "human_agent_if_urgent"],
+                metadata={"charge_issue_type": "general"},
+            )
+
         if any(k in text for k in ["unauthorized charge", "fraud charge", "fraudulent charge"]):
             return AgentResponse(
                 session_id=message.inbound.session_id,

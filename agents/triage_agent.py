@@ -29,13 +29,18 @@ class TriageAgent(BaseAgent):
         entities = dict(llm_result.get("entities") or {})
         entities.update(self._extract_entities_fallback(text))
         urgency = self._score_urgency(text, intent=intent, entities=entities, metadata=message.inbound.metadata)
-        escalate = bool(llm_result.get("escalate_immediately")) or self._should_escalate(text, urgency)
+        # Keep escalation deterministic and conservative. LLM outputs can over-trigger escalation
+        # for generic billing/refund prompts (e.g., "charge issue"), which harms UX.
+        escalate = self._should_escalate(text, urgency)
         intent = self._post_process_intent(text, intent)
+        # Keep routing deterministic and aligned with the final intent. This avoids LLM-suggested
+        # agent mismatches (e.g., refund/charge questions incorrectly jumping to escalation).
+        suggested_agent = self._suggested_agent(intent)
         return TriageResult(
             intent=intent,
             urgency_score=urgency,
             entities=entities,
-            suggested_agent=str(llm_result.get("suggested_agent") or self._suggested_agent(intent)),
+            suggested_agent=suggested_agent,
             escalate_immediately=escalate,
             language=language,
             reasoning=str(llm_result.get("reasoning") or f"triaged as {intent.value}"),
@@ -114,7 +119,11 @@ class TriageAgent(BaseAgent):
 
     def _should_escalate(self, text: str, urgency: int) -> bool:
         lower = text.lower()
-        if any(k in lower for k in ["lawyer", "legal", "sue", "human agent now", "supervisor now"]):
+        if (
+            re.search(r"\b(lawyer|legal|sue)\b", lower)
+            or "human agent now" in lower
+            or "supervisor now" in lower
+        ):
             return True
         return urgency >= 9 and "complaint" in lower
 
@@ -122,6 +131,6 @@ class TriageAgent(BaseAgent):
         lower = text.lower()
         if any(k in lower for k in ["missed my flight", "missed flight", "no-show"]) and intent == IntentType.GENERAL_INQUIRY:
             return IntentType.BOOKING_CHANGE
-        if any(k in lower for k in ["duplicate charge", "unauthorized charge", "charged twice"]) and intent == IntentType.GENERAL_INQUIRY:
+        if any(k in lower for k in ["duplicate charge", "unauthorized charge", "charged twice", "charge issue", "billing issue", "payment issue"]) and intent == IntentType.GENERAL_INQUIRY:
             return IntentType.REFUND
         return intent

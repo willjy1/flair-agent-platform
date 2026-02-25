@@ -377,7 +377,7 @@ class LLMRuntime:
         keyword_map = [
             ("ACCESSIBILITY", ["wheelchair", "accessible", "mobility", "special assistance"]),
             ("BAGGAGE", ["baggage", "bag", "luggage", "claim tag", "lost bag"]),
-            ("REFUND", ["refund", "money back", "duplicate charge", "incorrect charge", "unauthorized charge", "charged twice"]),
+            ("REFUND", ["refund", "money back", "duplicate charge", "incorrect charge", "unauthorized charge", "charged twice", "charge issue", "billing issue", "payment issue"]),
             ("CANCELLATION", ["cancel my booking", "cancel booking", "cancel flight"]),
             ("BOOKING_CHANGE", ["rebook", "change flight", "modify booking", "switch flight", "missed my flight", "missed flight", "no-show"]),
             ("COMPENSATION_CLAIM", ["compensation", "appr", "claim"]),
