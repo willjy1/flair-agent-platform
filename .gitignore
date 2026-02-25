@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+data/session_store.json
+data/customer_profiles.json
+data/crm_cases.json
+data/support_references.json
+data/*.log.jsonl

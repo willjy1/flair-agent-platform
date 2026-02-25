@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: flair-agent-platform
+    env: python
+    plan: starter
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DEFAULT_LLM_PROVIDER
+        value: openai
+      - key: DEFAULT_MODEL
+        value: gpt-4.1-mini
+      - key: DEBUG
+        value: "false"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "240"
+      - key: SESSION_STORE_PATH
+        value: /tmp/session_store.json
+      - key: CUSTOMER_PROFILE_STORE_PATH
+        value: /tmp/customer_profiles.json
+      - key: CRM_STORE_PATH
+        value: /tmp/crm_cases.json
+      - key: SUPPORT_REFERENCE_STORE_PATH
+        value: /tmp/support_references.json

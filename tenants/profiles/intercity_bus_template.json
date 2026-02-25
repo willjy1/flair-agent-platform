@@ -1,0 +1,38 @@
+{
+  "slug": "intercity_bus_template",
+  "display_name": "Travel Support Agents",
+  "vertical": "transportation",
+  "category": "intercity_bus",
+  "locale": "en-US",
+  "support_experience_name": "Trip Support",
+  "customer_capabilities": [
+    "trip status and delays",
+    "ticket changes and cancellations",
+    "refund and voucher guidance",
+    "baggage/lost item support intake",
+    "accessibility support requests",
+    "human handoff with context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels.",
+    "Make delay and cancellation next steps clear.",
+    "Provide official self-service and support links."
+  ],
+  "citations_by_intent_topics": {
+    "DELAY_INFO": ["contact", "digital_self_service"],
+    "IRROPS": ["contact", "digital_self_service"],
+    "REFUND": ["contact", "payments_refunds"],
+    "BOOKING_CHANGE": ["contact", "booking_changes"],
+    "ACCESSIBILITY": ["accessibility", "contact"]
+  },
+  "official_channel_topics": ["contact", "digital_self_service", "accessibility"],
+  "self_service_options": {
+    "DELAY_INFO": [],
+    "BOOKING_CHANGE": [],
+    "REFUND": [],
+    "ACCESSIBILITY": []
+  },
+  "hidden_from_customer_marketing": true
+}
+

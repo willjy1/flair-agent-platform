@@ -1,0 +1,38 @@
+{
+  "slug": "airline_template",
+  "display_name": "Airline Support Agents",
+  "vertical": "travel",
+  "category": "airline",
+  "locale": "en-US",
+  "support_experience_name": "Airline Support",
+  "customer_capabilities": [
+    "flight status and disruptions",
+    "booking changes and cancellations",
+    "refund and credit guidance",
+    "baggage support intake",
+    "accessibility support intake",
+    "human handoff with context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels.",
+    "Show next steps clearly.",
+    "Route to official channels and self-service when appropriate."
+  ],
+  "citations_by_intent_topics": {
+    "DELAY_INFO": ["contact", "digital_self_service"],
+    "IRROPS": ["contact", "digital_self_service"],
+    "REFUND": ["contact", "payments_refunds"],
+    "BOOKING_CHANGE": ["contact", "booking_changes"],
+    "ACCESSIBILITY": ["accessibility", "contact"]
+  },
+  "official_channel_topics": ["contact", "digital_self_service", "accessibility"],
+  "self_service_options": {
+    "DELAY_INFO": [],
+    "BOOKING_CHANGE": [],
+    "REFUND": [],
+    "ACCESSIBILITY": []
+  },
+  "hidden_from_customer_marketing": true
+}
+

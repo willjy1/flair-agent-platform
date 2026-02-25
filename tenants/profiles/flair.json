@@ -1,0 +1,98 @@
+{
+  "slug": "flair",
+  "display_name": "Flair Support Agents",
+  "vertical": "travel",
+  "category": "ulcc_airline",
+  "locale": "en-CA",
+  "support_experience_name": "Flair Support",
+  "customer_capabilities": [
+    "flight status and disruptions",
+    "rebooking and booking changes",
+    "cancellations and refund intake",
+    "baggage tracing intake",
+    "accessibility support requests",
+    "complaints and human handoff",
+    "official Flair support channel guidance"
+  ],
+  "channels": [
+    "web chat",
+    "voice (phone-capable backend + web voice simulation)",
+    "sms",
+    "email",
+    "social"
+  ],
+  "support_commitments": [
+    "Keep context in one conversation so customers do not need to repeat themselves.",
+    "Show the next best step clearly.",
+    "Use official Flair pages and channels for self-service and escalation.",
+    "Prepare handoff context for human agents when needed."
+  ],
+  "citations_by_intent_topics": {
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "REFUND": ["payments_refunds", "contact"],
+    "CANCELLATION": ["booking_changes", "contact"],
+    "BOOKING_CHANGE": ["booking_changes", "contact"],
+    "DELAY_INFO": ["contact", "digital_self_service"],
+    "IRROPS": ["contact", "digital_self_service", "customer_sentiment_signal"],
+    "COMPENSATION_CLAIM": ["contact", "customer_sentiment_signal"],
+    "BAGGAGE": ["contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "digital_self_service"]
+  },
+  "official_channel_topics": ["contact", "accessibility", "digital_self_service"],
+  "self_service_options": {
+    "DELAY_INFO": [
+      { "label": "Check Flight Status", "url": "https://flightstatus.flyflair.com/", "description": "Official Flair flight status page for real-time updates." },
+      { "label": "Manage My Booking", "url": "https://res.flyflair.com/", "description": "Official Flair booking management portal." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "IRROPS": [
+      { "label": "Check Flight Status", "url": "https://flightstatus.flyflair.com/", "description": "Official Flair flight status page for real-time updates." },
+      { "label": "Manage My Booking", "url": "https://res.flyflair.com/", "description": "Official Flair booking management portal." },
+      { "label": "Flair Help Centre", "url": "https://flyflair.zendesk.com/hc/en-us", "description": "Official Help Centre articles and support channels." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "BOOKING_CHANGE": [
+      { "label": "Manage My Booking", "url": "https://res.flyflair.com/", "description": "Official Flair booking management portal." },
+      { "label": "Flair Help Centre", "url": "https://flyflair.zendesk.com/hc/en-us", "description": "Official Help Centre articles." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "CANCELLATION": [
+      { "label": "Manage My Booking", "url": "https://res.flyflair.com/", "description": "Official Flair booking management portal." },
+      { "label": "Support Request Form", "url": "https://flyflair.zendesk.com/hc/en-ca/requests/new", "description": "Official support request form for non-urgent issues." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "REFUND": [
+      { "label": "Support Request Form", "url": "https://flyflair.zendesk.com/hc/en-ca/requests/new", "description": "Official support request form for refund-related follow-up." },
+      { "label": "Flair Help Centre", "url": "https://flyflair.zendesk.com/hc/en-us", "description": "Official Help Centre articles and support channels." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "BAGGAGE": [
+      { "label": "Support Request Form", "url": "https://flyflair.zendesk.com/hc/en-ca/requests/new", "description": "Official support request form for baggage follow-up." },
+      { "label": "Flair Help Centre", "url": "https://flyflair.zendesk.com/hc/en-us", "description": "Official Help Centre baggage guidance." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "ACCESSIBILITY": [
+      { "label": "Accessible Services", "url": "https://website-prd.flyflair.com/accessible-services", "description": "Official accessibility guidance and contact information." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "COMPLAINT": [
+      { "label": "Support Request Form", "url": "https://flyflair.zendesk.com/hc/en-ca/requests/new", "description": "Official support request form for complaints and follow-up." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "GENERAL_INQUIRY": [
+      { "label": "Flair Help Centre", "url": "https://flyflair.zendesk.com/hc/en-us", "description": "Official Help Centre articles." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ],
+    "COMPENSATION_CLAIM": [
+      { "label": "Support Request Form", "url": "https://flyflair.zendesk.com/hc/en-ca/requests/new", "description": "Official support request form for compensation/refund follow-up." },
+      { "label": "Official Contact Info", "url": "https://www.flyflair.com/support/contact-info", "description": "Official support contacts and guidance." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "country_focus": "Canada",
+    "carrier_type": "ULCC"
+  }
+}
+

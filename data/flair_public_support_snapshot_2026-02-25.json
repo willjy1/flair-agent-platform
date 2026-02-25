@@ -1,0 +1,104 @@
+{
+  "snapshot_date": "2026-02-25",
+  "carrier": "Flair Airlines",
+  "entries": [
+    {
+      "id": "contact-info-main-phone-live-chat",
+      "topic": "contact",
+      "tags": ["phone", "live_chat", "contact", "support", "hours"],
+      "text": "Flair's official contact page lists customer support phone 403-709-0808, states it is the only official number, shows 24/7 hours, and directs urgent help to live chat via the website chat icon. It also directs non-urgent issues such as baggage follow-up, refund inquiries, and travel credits to an official support request form.",
+      "source_url": "https://www.flyflair.com/support/contact-info",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "official-contact-channels-zendesk",
+      "topic": "contact",
+      "tags": ["official_channels", "fraud", "social", "whatsapp", "phone", "webforms"],
+      "text": "Flair's Help Centre official contact channels article lists supported channels (Facebook, Instagram, WhatsApp messaging, TikTok, LinkedIn, webforms, phone numbers, and certain domains), warns about scams and fraudulent activity, and notes that Flair no longer monitors X (Twitter).",
+      "source_url": "https://flyflair.zendesk.com/hc/en-us/articles/36403059952791-Official-Contact-Channels",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "accessible-services-main",
+      "topic": "accessibility",
+      "tags": ["accessibility", "48_hours", "phone", "vrs", "24_7"],
+      "text": "Flair's accessible services page says customers should ideally contact the accessibility team at least 48 hours before departure (with reasonable efforts for later requests), recommends arriving two hours early when special assistance is needed, and lists accessibility support phone 1-833-382-5421 plus VRS 711 with 24/7 availability.",
+      "source_url": "https://website-prd.flyflair.com/accessible-services",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "wheelchairs-curbside-assistance",
+      "topic": "accessibility",
+      "tags": ["wheelchair", "curbside", "48_hours", "airport_assistance"],
+      "text": "Flair's wheelchair and curbside assistance guidance describes multiple wheelchair service types and says curbside assistance is available at designated accessible drop-off and pick-up points at Canadian airports, with advance contact to Flair Accessibility Services requested at least 48 hours before departure.",
+      "source_url": "https://flyflair.zendesk.com/hc/en-us/articles/36424466563223-Wheelchairs-and-Curbside-Assistance",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "hearing-accessibility",
+      "topic": "accessibility",
+      "tags": ["hearing", "medical_accommodation_form", "48_hours", "accessibility_email"],
+      "text": "Flair's hearing accessibility article says certain assistance can be requested in advance and notes that some accommodations require submitting a Medical Accommodation Form to Flair Accessibility Services at least 48 hours before departure; it also describes specific assistance the airline can and cannot guarantee.",
+      "source_url": "https://flyflair.zendesk.com/hc/en-us/articles/36432146415127-Hearing",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "unauthorized-duplicate-incorrect-charges",
+      "topic": "payments_refunds",
+      "tags": ["fraud", "charges", "refund_form", "chargeback"],
+      "text": "Flair's Help Centre article on unauthorized or incorrect charges instructs customers to contact their bank immediately for suspected fraud, then contact Flair through official channels with the settled transaction code, and directs duplicate/incorrect charge disputes to a refund form for investigation.",
+      "source_url": "https://flyflair.zendesk.com/hc/en-us/articles/36458819029783-Unauthorized-Duplicate-or-Incorrect-Charges",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "app-capabilities-2025-2026",
+      "topic": "digital_self_service",
+      "tags": ["mobile_app", "flight_status", "check_in", "ios", "android"],
+      "text": "Flair's Help Centre says the new Flair Airlines app (as of Dec 2025) supports booking a new reservation and checking flight status, while direct in-app check-in is not yet available. It also notes Android app availability is still in development (per the cited article snapshot).",
+      "source_url": "https://flyflair.zendesk.com/hc/en-us/articles/37096640979351-Does-Flair-Have-an-App",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "resell-ticket-rules",
+      "topic": "booking_changes",
+      "tags": ["resell", "voucher", "eligibility", "direct_bookings_only"],
+      "text": "Flair's Resell article describes a voucher-based resale option for certain direct bookings, with eligibility rules including booking source, timing, and exclusions such as bundles with free cancellation.",
+      "source_url": "https://flyflair.zendesk.com/hc/en-us/articles/36924383675927-Flair-Resell-Ticket-Resale",
+      "source_type": "official",
+      "effective_date": "2026-02-25"
+    },
+    {
+      "id": "trustpilot-review-signal-2026",
+      "topic": "customer_sentiment_signal",
+      "tags": ["reviews", "trustpilot", "service_quality", "complaints"],
+      "text": "Trustpilot's Flair review page (user-generated content) shows a very low TrustScore at the time of the snapshot and many recent complaints describing refund delays, disruption handling issues, inconsistent baggage enforcement, and poor customer service interactions. This is a directional signal, not an official airline source.",
+      "source_url": "https://www.trustpilot.com/review/flyflair.com",
+      "source_type": "third_party_reviews",
+      "effective_date": "2026-02-25"
+    }
+  ],
+  "comparison_baseline": {
+    "current_flair_strengths": [
+      "24/7 customer support phone listed on official contact page",
+      "Website live chat availability is advertised",
+      "Official Zendesk help centre with many support articles",
+      "Accessibility pages and dedicated accessibility contact channels",
+      "Self-service portals for booking management and check-in"
+    ],
+    "current_flair_gaps_observed_or_likely": [
+      "Channel fragmentation across website, Zendesk, webforms, social, phone, WhatsApp, and separate tools",
+      "No evidence of unified AI-driven agentic support with context continuity across channels",
+      "No public indication of proactive disruption outreach automation with APPR compensation guidance",
+      "No public indication of transparent real-time claim/refund orchestration inside a single conversational flow",
+      "No public indication of executive-grade support operations dashboard for agentic orchestration"
+    ]
+  }
+}
+
