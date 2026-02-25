@@ -1,0 +1,82 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Humana",
+  "entries": [
+    {
+      "id": "humana-contact-us",
+      "topic": "contact",
+      "tags": ["contact", "member_support", "customer_service"],
+      "text": "Humana's official Contact Us page serves as a primary member support and contact channel entry point.",
+      "source_url": "https://www.humana.com/contact-us",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "humana-member-portal-entry",
+      "topic": "member_support",
+      "tags": ["member", "portal", "claims", "benefits"],
+      "text": "Humana's official member pages route users into member-specific portal and support experiences for claims and benefits details.",
+      "source_url": "https://www.humana.com/member",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "humana-digital-self-service",
+      "topic": "digital_self_service",
+      "tags": ["self_service", "member_portal", "digital"],
+      "text": "Humana's member digital experience is a separate surface from public contact pages, which can create context breaks when customers switch channels.",
+      "source_url": "https://www.humana.com/member",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "humana-claims-routing",
+      "topic": "claims",
+      "tags": ["claims", "member_support", "portal"],
+      "text": "Humana claim support and status questions are typically handled through member portal and contact channels rather than a unified cross-channel conversation.",
+      "source_url": "https://www.humana.com/member",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "humana-billing-payments-routing",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "member_support"],
+      "text": "Humana billing and premium support is generally routed through member support and account-specific channels.",
+      "source_url": "https://www.humana.com/contact-us",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "health-plan-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "healthcare_digital", "findability", "digital_gap"],
+      "text": "JD Power's 2025 U.S. Healthcare Digital Experience Study reports major findability and usability issues across health plan digital experiences.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-healthcare-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-08-14"
+    },
+    {
+      "id": "commercial-health-plan-member-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "commercial_member_health_plan", "member_service"],
+      "text": "JD Power's 2025 Commercial Member Health Plan Study highlights wide variation in member experience and the importance of better support and digital service.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-commercial-member-health-plan-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-05-19"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official contact and member pages",
+      "Member portal and digital self-service surfaces",
+      "Broad support coverage for members"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Public contact pages and member portal are separate surfaces that can break context continuity",
+      "No public evidence of one-thread support experience across chat, voice, and follow-up",
+      "No public guided intake for claims/prior auth/benefits questions in one conversation",
+      "No public customer-facing tracker spanning support conversations"
+    ]
+  }
+}

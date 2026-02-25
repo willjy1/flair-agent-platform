@@ -1,0 +1,62 @@
+{
+  "slug": "dukeenergy",
+  "display_name": "Duke Energy Support Agents",
+  "vertical": "utilities",
+  "category": "electric_utility",
+  "locale": "en-US",
+  "support_experience_name": "Duke Energy Support",
+  "customer_capabilities": [
+    "outage status and outage reporting guidance",
+    "billing and payment arrangement issue triage",
+    "start/stop/move service request preparation",
+    "document upload intake for billing/support issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context in one conversation so customers do not repeat details.",
+    "Prioritize outage and safety-related guidance.",
+    "Guide customers to official outage and account support paths."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "contact"],
+    "BOOKING_CHANGE": ["service_requests", "contact"],
+    "CANCELLATION": ["service_requests", "contact"],
+    "DELAY_INFO": ["outage", "contact", "digital_self_service"],
+    "IRROPS": ["outage", "contact", "digital_self_service", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "outage", "billing_payments", "service_requests", "digital_self_service"]
+  },
+  "official_channel_topics": ["contact", "outage", "billing_payments", "service_requests", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Duke Energy Customer Service", "url": "https://www.duke-energy.com/home/customer-service", "description": "Official Duke Energy customer service and account support." },
+      { "label": "Duke Energy Outages", "url": "https://www.duke-energy.com/outages", "description": "Official outage map and outage reporting/status tools." },
+      { "label": "Duke Energy Home", "url": "https://www.duke-energy.com/home", "description": "Official Duke Energy site with account and service resources." }
+    ],
+    "DELAY_INFO": [
+      { "label": "Outage Map and Status", "url": "https://www.duke-energy.com/outages", "description": "Official outage status and restoration updates." }
+    ],
+    "REFUND": [
+      { "label": "Duke Energy Customer Service", "url": "https://www.duke-energy.com/home/customer-service", "description": "Official billing and account support channels." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Duke Energy",
+    "contact_page_url": "https://www.duke-energy.com/home/customer-service",
+    "help_center_url": "https://www.duke-energy.com/outages",
+    "wait_time_disclaimer": "Support availability and wait times may vary.",
+    "brand_mark": "DE",
+    "hero_title": "Get utility support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with outages, billing, payment arrangements, and service requests without starting over.",
+    "resource_panel_title": "Official Duke Energy support links",
+    "brand_theme": {
+      "accent": "#00a3e0",
+      "accent_2": "#005b99",
+      "surface_tint": "#f1fbff",
+      "brand_dark": "#0c2438"
+    }
+  }
+}

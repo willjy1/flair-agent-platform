@@ -1,0 +1,56 @@
+{
+  "slug": "cigna",
+  "display_name": "Cigna Support Agents",
+  "vertical": "health",
+  "category": "health_plan",
+  "locale": "en-US",
+  "support_experience_name": "Cigna Member Support",
+  "customer_capabilities": [
+    "claims status follow-up guidance",
+    "prior authorization and coverage question preparation",
+    "member support and billing issue triage",
+    "provider search and ID card guidance",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context across channels so members do not repeat details.",
+    "Guide members to the right Cigna support path quickly.",
+    "Prepare clear summaries for follow-up and handoff."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "member_support", "claims", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "member_support", "claims", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Cigna Contact Us", "url": "https://www.cigna.com/contact-us/", "description": "Official Cigna customer service and contact channels." },
+      { "label": "myCigna", "url": "https://my.cigna.com/", "description": "Official member portal for claims, benefits, and secure messages." },
+      { "label": "Cigna Contact Numbers", "url": "https://www.cigna.com/contact-us/contact-numbers", "description": "Official Cigna phone and support number directory." }
+    ],
+    "REFUND": [
+      { "label": "Cigna Contact Us", "url": "https://www.cigna.com/contact-us/", "description": "Official support path for billing, claims, and member questions." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Cigna",
+    "contact_page_url": "https://www.cigna.com/contact-us/",
+    "help_center_url": "https://www.cigna.com/contact-us/contact-numbers",
+    "wait_time_disclaimer": "Member support availability and wait times may vary.",
+    "brand_mark": "Ci",
+    "hero_title": "Get Cigna support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with claims, prior authorization, benefits, billing, and member support without starting over.",
+    "resource_panel_title": "Official Cigna support links",
+    "brand_theme": {
+      "accent": "#005f9e",
+      "accent_2": "#0a4a74",
+      "surface_tint": "#f2f8fc",
+      "brand_dark": "#102a43"
+    }
+  }
+}

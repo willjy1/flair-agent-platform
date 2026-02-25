@@ -1,0 +1,77 @@
+{
+  "slug": "progressive",
+  "display_name": "Progressive Support Agents",
+  "vertical": "insurance",
+  "category": "auto_insurance",
+  "locale": "en-US",
+  "support_experience_name": "Progressive Support",
+  "customer_capabilities": [
+    "claim status and claim follow-up guidance",
+    "claim denial and appeal preparation guidance",
+    "policy billing and payment issue triage",
+    "roadside assistance preparation and escalation",
+    "document upload intake for claims and billing issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Move from problem to next step quickly instead of sending customers into loops.",
+    "Use official Progressive support pages and claims paths when self-service or escalation is best.",
+    "Prepare a clean handoff summary when a human agent is needed."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "contact", "claims"],
+    "BAGGAGE": ["claims", "contact"],
+    "DELAY_INFO": ["claims", "contact"],
+    "IRROPS": ["claims", "contact", "digital_self_service"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "claims", "billing_payments", "digital_self_service"],
+    "COMPENSATION_CLAIM": ["claims", "contact"],
+    "BOOKING_CHANGE": ["digital_self_service", "contact"],
+    "CANCELLATION": ["digital_self_service", "contact"]
+  },
+  "official_channel_topics": ["contact", "claims", "digital_self_service", "billing_payments"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Progressive Contact Us", "url": "https://www.progressive.com/contact-us/", "description": "Official Progressive customer support contact options." },
+      { "label": "Claims Center", "url": "https://www.progressive.com/claims/", "description": "Official Progressive claims support and claim management entry point." },
+      { "label": "Manage Policy", "url": "https://www.progressive.com/manage-policy/", "description": "Official Progressive policy and account self-service." }
+    ],
+    "REFUND": [
+      { "label": "Contact Progressive", "url": "https://www.progressive.com/contact-us/", "description": "Official billing and support contact paths." },
+      { "label": "Manage Policy", "url": "https://www.progressive.com/manage-policy/", "description": "Official account and payment self-service." }
+    ],
+    "COMPLAINT": [
+      { "label": "Progressive Contact Us", "url": "https://www.progressive.com/contact-us/", "description": "Official support contact options." }
+    ],
+    "ACCESSIBILITY": [
+      { "label": "Progressive Contact Us", "url": "https://www.progressive.com/contact-us/", "description": "Official customer service and support channels." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Progressive",
+    "contact_page_url": "https://www.progressive.com/contact-us/",
+    "help_center_url": "https://www.progressive.com/claims/",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "P",
+    "hero_title": "Get insurance support in one conversation.",
+    "hero_subtitle": "Text or voice. Get clear next steps for claims, billing, roadside support, and human escalation without starting over.",
+    "resource_panel_title": "Official Progressive support links",
+    "brand_theme": {
+      "accent": "#0a66c2",
+      "accent_2": "#0f4e8a",
+      "surface_tint": "#f4f9ff",
+      "brand_dark": "#0b1f33"
+    },
+    "suggested_starters": [
+      "What's the status of my claim?",
+      "My claim was denied. What should I do next?",
+      "I have a billing issue on my policy.",
+      "I need roadside assistance help.",
+      "I want to upload claim documents."
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Duke Energy",
+  "entries": [
+    {
+      "id": "duke-customer-service",
+      "topic": "contact",
+      "tags": ["customer_service", "contact", "support"],
+      "text": "Duke Energy's official customer service pages provide account and support guidance as a primary contact surface.",
+      "source_url": "https://www.duke-energy.com/home/customer-service",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "duke-outages",
+      "topic": "outage",
+      "tags": ["outage", "outage_map", "status", "report_outage"],
+      "text": "Duke Energy maintains a separate outages surface for outage reporting, outage maps, and restoration updates.",
+      "source_url": "https://www.duke-energy.com/outages",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "duke-digital-self-service",
+      "topic": "digital_self_service",
+      "tags": ["account", "self_service", "home"],
+      "text": "Duke Energy's account and support tools are spread across customer service and outage pages rather than one guided support thread.",
+      "source_url": "https://www.duke-energy.com/home",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "duke-billing-payments",
+      "topic": "billing_payments",
+      "tags": ["billing", "payment", "customer_service"],
+      "text": "Billing and payment support is handled through customer service/account support paths distinct from outage workflows.",
+      "source_url": "https://www.duke-energy.com/home/customer-service",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "utility-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "utility_digital_experience", "digital_dead_ends"],
+      "text": "JD Power's 2025 U.S. Utility Digital Experience Study reports that many utility websites/apps fail basic standards and customers encounter digital dead ends.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-utility-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-10-16"
+    },
+    {
+      "id": "electric-utility-satisfaction-pressure-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "electric_utility", "customer_satisfaction", "communication"],
+      "text": "JD Power's 2025 Electric Utility Residential Customer Satisfaction Study highlights pressure on utilities to improve communication and digital service experiences.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-electric-utility-residential-customer-satisfaction-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-07-09"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official customer service and outage pages",
+      "Dedicated outage tools and status surfaces",
+      "Clear public account support entry points"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Outage, billing, and service requests remain split across separate support surfaces",
+      "No public evidence of one-thread support continuity across channels",
+      "No public guided outage/billing resolution layer that keeps context and next steps in one conversation",
+      "No public customer-visible tracker for support conversations and follow-ups"
+    ]
+  }
+}

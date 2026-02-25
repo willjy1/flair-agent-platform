@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "UnitedHealthcare",
+  "entries": [
+    {
+      "id": "uhg-contact-us",
+      "topic": "contact",
+      "tags": ["contact", "support", "member_services", "routing"],
+      "text": "UnitedHealth Group's contact page provides corporate and business contact routing and is commonly used as an entry point for customers seeking UnitedHealthcare support paths.",
+      "source_url": "https://www.unitedhealthgroup.com/contact-us.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "uhc-member-resources",
+      "topic": "member_support",
+      "tags": ["member_resources", "support", "benefits", "help"],
+      "text": "UnitedHealthcare's member resources pages provide member-support and plan information across separate self-service and contact experiences.",
+      "source_url": "https://www.uhc.com/member-resources",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "myuhc-help-contact",
+      "topic": "digital_self_service",
+      "tags": ["myuhc", "help_contact", "member_portal", "support"],
+      "text": "myUHC help/contact and portal pages support account access and member self-service, but support tasks remain distributed across portal and contact paths.",
+      "source_url": "https://welcometouhcglobal.com/myuhc/help-contact.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "uhc-claims-support-routing",
+      "topic": "claims",
+      "tags": ["claims", "member_support", "portal", "follow_up"],
+      "text": "Claims follow-up and coverage questions are generally routed through member-service and portal experiences, which can create extra navigation effort before resolution.",
+      "source_url": "https://www.myuhc.com/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "health-plan-member-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "commercial_member_health_plan", "member_experience", "digital_support"],
+      "text": "JD Power's 2025 U.S. Commercial Member Health Plan Study shows meaningful performance gaps across health plans in member support and digital experience.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-commercial-member-health-plan-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-04-24"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Strong member resources and portal ecosystem",
+      "Published support and contact pathways",
+      "Separate member self-service tools for account access"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Support experiences remain split across corporate contact, member resources, and portal surfaces",
+      "No public evidence of cross-channel context continuity in one support thread",
+      "No public customer-visible support tracker for member support issues",
+      "No public resolution-orchestration layer for claims/prior auth/coverage conversations"
+    ]
+  }
+}

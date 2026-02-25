@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "FedEx",
+  "entries": [
+    {
+      "id": "fedex-customer-support",
+      "topic": "contact",
+      "tags": ["customer_support", "contact", "shipping_support"],
+      "text": "FedEx's official customer support page provides support routing for tracking, shipping, account, and billing issues.",
+      "source_url": "https://www.fedex.com/en-us/customer-support.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "fedex-tracking",
+      "topic": "tracking",
+      "tags": ["tracking", "delivery_status", "shipment_status"],
+      "text": "FedEx provides a separate official tracking page for shipment status and delivery updates.",
+      "source_url": "https://www.fedex.com/us/tracking/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "fedex-learn-support-resources",
+      "topic": "digital_self_service",
+      "tags": ["help_resources", "self_service", "support_topics"],
+      "text": "FedEx maintains separate support/help resources and self-service content outside the main tracking experience.",
+      "source_url": "https://www.fedex.com/en-us/learn.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "fedex-claims-and-billing-routing",
+      "topic": "claims",
+      "tags": ["claims", "billing", "damage", "missing_shipment", "routing"],
+      "text": "Shipment claims, damaged package issues, and billing questions are typically routed through specialized support paths, increasing customer effort when the issue is unclear.",
+      "source_url": "https://www.fedex.com/en-us/customer-support.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "parcel-customer-service-pressure-ofcom-federal-context",
+      "topic": "customer_sentiment_signal",
+      "tags": ["parcel", "service_quality", "customer_effort", "industry_signal"],
+      "text": "Parcel delivery support remains a high-friction category in public regulatory and customer-service studies, with recurring issues around delivery problems, contact handling, and complaint resolution.",
+      "source_url": "https://www.ofcom.org.uk/post/deliveries-and-charges/best-and-worst-parcel-firms-for-customer-satisfaction-revealed-2025",
+      "source_type": "industry_research",
+      "effective_date": "2025-10-22"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Strong official tracking experience",
+      "Official customer support hub for multiple issue types",
+      "Large self-service/help content footprint"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Tracking, claims, billing, and support remain split across separate surfaces",
+      "No public evidence of one support thread across text, voice, and handoff",
+      "No public customer-visible issue tracker spanning support interactions",
+      "No public conversational resolution layer for delivery, claims, and billing workflows"
+    ]
+  }
+}

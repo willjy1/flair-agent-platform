@@ -1,0 +1,56 @@
+{
+  "slug": "unitedhealthcare",
+  "display_name": "UnitedHealthcare Support Agents",
+  "vertical": "health",
+  "category": "health_plan",
+  "locale": "en-US",
+  "support_experience_name": "UnitedHealthcare Member Support",
+  "customer_capabilities": [
+    "claims status follow-up guidance",
+    "prior authorization and coverage question preparation",
+    "member support and billing issue triage",
+    "member ID card and provider search guidance",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context across channels so members do not repeat details.",
+    "Guide members to the right support path quickly.",
+    "Prepare clear follow-up and handoff summaries."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "member_support", "claims", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "member_support", "claims", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "UnitedHealth Group Contact Us", "url": "https://www.unitedhealthgroup.com/contact-us.html", "description": "Official UnitedHealth Group contact guidance with UnitedHealthcare member support routing." },
+      { "label": "myUHC Help & Contact", "url": "https://welcometouhcglobal.com/myuhc/help-contact.html", "description": "Official member help/contact experience showing member services and web support paths." },
+      { "label": "myUHC", "url": "https://www.myuhc.com/", "description": "Official UnitedHealthcare member portal sign-in." }
+    ],
+    "REFUND": [
+      { "label": "UnitedHealth Group Contact Us", "url": "https://www.unitedhealthgroup.com/contact-us.html", "description": "Official contact guidance for member support routing." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "UnitedHealthcare",
+    "contact_page_url": "https://www.unitedhealthgroup.com/contact-us.html",
+    "help_center_url": "https://welcometouhcglobal.com/myuhc/help-contact.html",
+    "wait_time_disclaimer": "Member support availability and wait times may vary.",
+    "brand_mark": "UH",
+    "hero_title": "Get UnitedHealthcare support in one conversation.",
+    "hero_subtitle": "Text or voice. Get clear next steps for claims, prior authorization, benefits, billing, and member support.",
+    "resource_panel_title": "Official UnitedHealthcare support links",
+    "brand_theme": {
+      "accent": "#0055a5",
+      "accent_2": "#003b73",
+      "surface_tint": "#f1f7ff",
+      "brand_dark": "#10233f"
+    }
+  }
+}

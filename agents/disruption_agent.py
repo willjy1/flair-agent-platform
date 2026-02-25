@@ -6,15 +6,24 @@ from typing import List
 
 from agents.base import BaseAgent
 from models.schemas import AgentMessage, AgentResponse, ConversationState, ToolCallRecord
+from tenants.registry import TenantProfile
 from tools.booking_tools import BookingAPIError, MockFlairBookingAPIClient
 from tools.flight_status_tools import FlightStatusTools
 
 
 class DisruptionAgent(BaseAgent):
-    def __init__(self, flight_status_tools: FlightStatusTools, booking_tools: MockFlairBookingAPIClient) -> None:
+    def __init__(
+        self,
+        flight_status_tools: FlightStatusTools,
+        booking_tools: MockFlairBookingAPIClient,
+        tenant_slug: str = "flair",
+        tenant_profile: TenantProfile | None = None,
+    ) -> None:
         super().__init__(name="disruption_agent")
         self.flight_status_tools = flight_status_tools
         self.booking_tools = booking_tools
+        self.tenant_slug = (tenant_slug or "flair").lower()
+        self.tenant_profile = tenant_profile
 
     async def process(self, message: AgentMessage) -> AgentResponse:
         entities = dict(message.extracted_entities)
@@ -29,21 +38,25 @@ class DisruptionAgent(BaseAgent):
         has_explicit_identifier = bool(re.search(r"\bF8\d{3,4}\b", text.upper())) or bool(
             re.search(r"\b[A-Z0-9]{6}\b", text.upper())
         )
+        flight_age_seconds = self._entity_age_seconds(message, "flight_number")
         session_age_seconds = self._session_age_seconds(message.context.get("session_updated_at"))
+        freshness_age = flight_age_seconds if flight_age_seconds is not None else session_age_seconds
         if (
             flight_number
             and not has_explicit_identifier
             and "status" in lower
-            and session_age_seconds is not None
-            and session_age_seconds > 2 * 60 * 60
+            and freshness_age is not None
+            and freshness_age > 2 * 60 * 60
         ):
+            hours = max(1, round(float(freshness_age) / 3600))
             return AgentResponse(
                 session_id=message.inbound.session_id,
                 customer_id=message.inbound.customer_id,
                 state=ConversationState.CONFIRMING,
                 response_text=(
                     f"I still have a recent flight in this conversation ({flight_number}), but it may be out of date. "
-                    "Do you want me to check that flight, or would you like to share a different flight number or booking reference?"
+                    f"Do you want me to check that flight, or would you like to share a different flight number or booking reference? "
+                    f"(It was last used about {hours} hour{'s' if hours != 1 else ''} ago.)"
                 ),
                 agent=self.name,
                 next_actions=["confirm_saved_flight", "provide_flight_number_or_booking_reference"],
@@ -83,11 +96,14 @@ class DisruptionAgent(BaseAgent):
 
         next_actions = []
         concierge_options = []
+        supports_appr = self._supports_appr()
         if delay_minutes > 0:
             next_actions.append("rebooking_options")
-        if delay_minutes >= 180:
+        if delay_minutes >= 180 and supports_appr:
             next_actions.append("compensation_check")
             text_parts.append("This may qualify for APPR compensation depending on the final disruption details.")
+        elif delay_minutes >= 180:
+            text_parts.append("Depending on the route and applicable rules, compensation or refund options may apply.")
         elif delay_minutes > 0:
             text_parts.append("If you want, I can also help with rebooking options.")
 
@@ -139,6 +155,18 @@ class DisruptionAgent(BaseAgent):
     def _session_age_seconds(self, updated_at: object) -> float | None:
         if not updated_at:
             return None
+
+    def _entity_age_seconds(self, message: AgentMessage, field: str) -> float | None:
+        ctx_window = message.context.get("context_window") if isinstance(message.context, dict) else None
+        if not isinstance(ctx_window, dict):
+            return None
+        ages = ctx_window.get("entity_freshness_seconds")
+        if not isinstance(ages, dict):
+            return None
+        try:
+            return float(ages.get(field))
+        except Exception:
+            return None
         try:
             raw = str(updated_at).replace("Z", "+00:00")
             dt = datetime.fromisoformat(raw)
@@ -147,3 +175,15 @@ class DisruptionAgent(BaseAgent):
             return (datetime.now(timezone.utc) - dt.astimezone(timezone.utc)).total_seconds()
         except Exception:
             return None
+
+    def _supports_appr(self) -> bool:
+        if self.tenant_slug == "flair":
+            return True
+        md = dict(getattr(self.tenant_profile, "metadata", {}) or {})
+        if bool(md.get("supports_appr")):
+            return True
+        if str(md.get("country_focus") or "").lower() == "canada":
+            return True
+        if str(getattr(self.tenant_profile, "locale", "") or "").lower().endswith("ca"):
+            return True
+        return False

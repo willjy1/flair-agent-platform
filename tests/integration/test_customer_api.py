@@ -46,6 +46,54 @@ def test_support_frontier_route_serves_customer_page():
     assert "customer_support.js" in resp.text
 
 
+def test_support_additional_tenants_routes_serve_customer_page():
+    client = TestClient(create_app())
+    for slug in ["progressive", "aetna", "dukeenergy", "xfinity"]:
+        resp = client.get(f"/support/{slug}")
+        assert resp.status_code == 200
+        assert "customer_support.js" in resp.text
+
+
+def test_support_next_wave_tenants_routes_serve_customer_page():
+    client = TestClient(create_app())
+    for slug in ["cigna", "unitedhealthcare", "statefarm", "libertymutual", "farmers", "fedex", "ups", "dhl"]:
+        resp = client.get(f"/support/{slug}")
+        assert resp.status_code == 200
+        assert "customer_support.js" in resp.text
+
+
+def test_demo_directory_routes_work():
+    client = TestClient(create_app())
+    page = client.get("/demos")
+    assert page.status_code == 200
+    assert "demo_directory.js" in page.text
+    catalog = client.get("/api/v1/demos/catalog")
+    assert catalog.status_code == 200
+    data = catalog.json()
+    assert data["ok"] is True
+    slugs = {item["slug"] for item in data["demos"]}
+    assert "flair" in slugs
+    assert "frontier" in slugs
+    assert "cigna" in slugs
+    assert "fedex" in slugs
+
+
+def test_customer_capabilities_insurance_and_health_tenants_are_verticalized():
+    client = TestClient(create_app())
+    insurance = client.get("/api/v1/customer/capabilities?tenant=progressive")
+    health = client.get("/api/v1/customer/capabilities?tenant=aetna")
+    assert insurance.status_code == 200
+    assert health.status_code == 200
+    ins = insurance.json()
+    hp = health.json()
+    assert ins["vertical"] == "insurance"
+    assert hp["vertical"] == "health"
+    assert "claims" in " ".join(ins.get("what_it_can_help_with", [])).lower()
+    assert "prior authorization" in " ".join(hp.get("what_it_can_help_with", [])).lower()
+    assert isinstance(ins.get("ui_strings"), dict)
+    assert isinstance(hp.get("ui_strings"), dict)
+
+
 def test_customer_message_returns_citations_and_next_steps():
     client = TestClient(create_app())
     resp = client.post(
@@ -63,7 +111,50 @@ def test_customer_message_returns_citations_and_next_steps():
     assert len(data.get("citations", [])) >= 1
     assert len(data.get("official_next_steps", [])) >= 1
     assert isinstance(data.get("customer_plan"), dict)
+    assert isinstance(data.get("promise_ledger"), list)
+    assert isinstance(data.get("customer_effort"), dict)
     assert len(data.get("self_service_options", [])) >= 1
+
+
+def test_insurance_claim_status_generates_workflow_artifact():
+    client = TestClient(create_app())
+    resp = client.post(
+        "/api/v1/customer/message",
+        json={
+            "tenant": "progressive",
+            "session_id": "ins-claim-1",
+            "customer_id": "cust-ins-1",
+            "channel": "web",
+            "content": "What's the status of my claim?",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["agent"] == "general_agent"
+    assert data["intent"] == "GENERAL_INQUIRY"
+    artifacts = data.get("resolution_artifacts") or {}
+    assert isinstance(artifacts.get("workflow_artifact"), dict)
+    assert "claim" in str(artifacts["workflow_artifact"].get("title", "")).lower()
+
+
+def test_health_plan_prior_auth_generates_workflow_artifact():
+    client = TestClient(create_app())
+    resp = client.post(
+        "/api/v1/customer/message",
+        json={
+            "tenant": "aetna",
+            "session_id": "hp-auth-1",
+            "customer_id": "cust-hp-1",
+            "channel": "web",
+            "content": "I need help with a prior authorization.",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["agent"] == "general_agent"
+    artifacts = data.get("resolution_artifacts") or {}
+    assert isinstance(artifacts.get("workflow_artifact"), dict)
+    assert "authorization" in str(artifacts["workflow_artifact"].get("title", "")).lower()
 
 
 def test_customer_followup_clarification_uses_session_context():
@@ -274,3 +365,65 @@ def test_customer_alerts_returns_disruption_alert_when_session_has_delayed_fligh
     assert isinstance(data.get("alerts"), list)
     if data["alerts"]:
         assert "recommended_actions" in data["alerts"][0]
+
+
+def test_customer_commitments_endpoint_returns_promise_ledger():
+    client = TestClient(create_app())
+    session_id = "cust-commit-1"
+    customer_id = "cust-commit"
+    msg = client.post(
+        "/api/v1/customer/message",
+        json={
+            "session_id": session_id,
+            "customer_id": customer_id,
+            "channel": "web",
+            "content": "I need a refund for booking AB12CD",
+        },
+    )
+    assert msg.status_code == 200
+    resp = client.get(f"/api/v1/customer/commitments?session_id={session_id}&customer_id={customer_id}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data.get("commitments"), list)
+    assert isinstance(data.get("customer_effort"), dict)
+    if data["commitments"]:
+        ids = {str(item.get("id")) for item in data["commitments"] if isinstance(item, dict)}
+        assert "context_continuity" in ids
+
+
+def test_stale_memory_confirmation_for_refund_booking_reference():
+    client = TestClient(create_app())
+    session_id = "cust-stale-refund-1"
+    customer_id = "cust-stale"
+    first = client.post(
+        "/api/v1/customer/message",
+        json={
+            "session_id": session_id,
+            "customer_id": customer_id,
+            "channel": "web",
+            "content": "I need a refund for booking AB12CD",
+        },
+    )
+    assert first.status_code == 200
+    # Simulate stale memory by editing the saved entity timestamp.
+    pool = getattr(client.app.state, "tenant_pool", None)
+    orch = pool.get("flair") if pool is not None else client.app.state.orchestrator
+    import asyncio
+    ctx = asyncio.run(orch.session_memory.get_by_session_id(session_id))
+    assert ctx is not None
+    ts = dict(ctx.extracted_entities.get("_entity_timestamps") or {})
+    ts["booking_reference"] = "2020-01-01T00:00:00"
+    ctx.extracted_entities["_entity_timestamps"] = ts
+    second = client.post(
+        "/api/v1/customer/message",
+        json={
+            "session_id": session_id,
+            "customer_id": customer_id,
+            "channel": "web",
+            "content": "can i get a refund",
+        },
+    )
+    assert second.status_code == 200
+    data = second.json()
+    assert data["agent"] == "refund_agent"
+    assert "still have a booking reference from earlier" in data["message"].lower()

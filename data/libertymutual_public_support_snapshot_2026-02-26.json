@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Liberty Mutual",
+  "entries": [
+    {
+      "id": "libertymutual-customer-support",
+      "topic": "contact",
+      "tags": ["customer_support", "contact", "support_hub"],
+      "text": "Liberty Mutual provides an official customer support hub and contact information across customer-support pages and corporate contact pages.",
+      "source_url": "https://www.libertymutual.com/customer-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "libertymutual-claims-support",
+      "topic": "claims",
+      "tags": ["claims", "claims_support", "claim_help"],
+      "text": "Liberty Mutual maintains a dedicated claims support experience, separate from its general customer support page.",
+      "source_url": "https://www.libertymutual.com/customer-support/claims-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "libertymutual-billing-payments-routing",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "customer_support", "routing"],
+      "text": "Billing and payment assistance is routed through customer support pages and account experiences, which can create customer navigation effort before resolution.",
+      "source_url": "https://www.libertymutual.com/customer-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "libertymutual-corporate-contact",
+      "topic": "digital_self_service",
+      "tags": ["contact", "corporate", "support_routing"],
+      "text": "Liberty Mutual's corporate contact page provides additional routing information and reflects multiple support surfaces across the organization.",
+      "source_url": "https://www.libertymutualgroup.com/about-lm/corporate-information/contact-us",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "pnc-claims-digital-gap-jdpower-liberty-context",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "claims_digital", "proactive_updates", "customer_effort"],
+      "text": "JD Power's 2025 U.S. Claims Digital Experience Study indicates insurers still underperform on proactive updates and end-to-end digital claims support continuity.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-claims-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-11-17"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Dedicated claims support page",
+      "Official customer support hub",
+      "Published contact routing across customer and corporate surfaces"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Customers still navigate separate claims, support, and billing paths",
+      "No public evidence of a unified conversational support thread across channels",
+      "No public customer-visible request tracker spanning support and claims",
+      "No public support-orchestration layer for claim, billing, and roadside workflows"
+    ]
+  }
+}

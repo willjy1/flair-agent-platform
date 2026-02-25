@@ -1,0 +1,59 @@
+{
+  "slug": "fedex",
+  "display_name": "FedEx Support Agents",
+  "vertical": "parcel",
+  "category": "parcel_carrier",
+  "locale": "en-US",
+  "support_experience_name": "FedEx Support",
+  "customer_capabilities": [
+    "package tracking and delivery status support",
+    "missing delivery and damaged package claim intake guidance",
+    "shipping charge and billing issue triage",
+    "document/photo upload intake for delivery and claims issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat shipment details.",
+    "Guide customers to the right tracking, claims, or billing support path quickly.",
+    "Prepare clear summaries for follow-up and escalation."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "tracking", "claims", "billing_payments", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "contact", "claims"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "DELAY_INFO": ["tracking", "contact", "digital_self_service"],
+    "IRROPS": ["tracking", "contact", "customer_sentiment_signal"]
+  },
+  "official_channel_topics": ["contact", "tracking", "claims", "billing_payments", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "FedEx Customer Support", "url": "https://www.fedex.com/en-us/customer-support.html", "description": "Official FedEx customer support hub." },
+      { "label": "FedEx Tracking", "url": "https://www.fedex.com/us/tracking/", "description": "Official FedEx tracking page." },
+      { "label": "FedEx Learn / Support Resources", "url": "https://www.fedex.com/en-us/learn.html", "description": "Official FedEx help resources and support topics." }
+    ],
+    "DELAY_INFO": [
+      { "label": "FedEx Tracking", "url": "https://www.fedex.com/us/tracking/", "description": "Official FedEx tracking and delivery status." }
+    ],
+    "REFUND": [
+      { "label": "FedEx Customer Support", "url": "https://www.fedex.com/en-us/customer-support.html", "description": "Official FedEx support for billing and account issues." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "FedEx",
+    "contact_page_url": "https://www.fedex.com/en-us/customer-support.html",
+    "help_center_url": "https://www.fedex.com/us/tracking/",
+    "wait_time_disclaimer": "Support availability and wait times may vary.",
+    "brand_mark": "Fx",
+    "hero_title": "Get shipping support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with tracking, delivery issues, shipment claims, and billing questions without starting over.",
+    "resource_panel_title": "Official FedEx support links",
+    "brand_theme": {
+      "accent": "#4d148c",
+      "accent_2": "#ff6600",
+      "surface_tint": "#faf5ff",
+      "brand_dark": "#241336"
+    }
+  }
+}

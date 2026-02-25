@@ -1,0 +1,82 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "GEICO",
+  "entries": [
+    {
+      "id": "geico-contact-us",
+      "topic": "contact",
+      "tags": ["contact", "support", "customer_service"],
+      "text": "GEICO's official Contact Us page provides customer support routing and issue-specific contact paths.",
+      "source_url": "https://www.geico.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "geico-phone-directory",
+      "topic": "contact",
+      "tags": ["phone", "directory", "issue_specific_numbers"],
+      "text": "GEICO provides a dedicated phone support directory page, indicating multiple issue-specific support paths rather than a single unified resolution flow.",
+      "source_url": "https://www.geico.com/contact-us/phone/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "geico-claims-center",
+      "topic": "claims",
+      "tags": ["claims", "report_claim", "claim_status"],
+      "text": "GEICO's official Claims page is a separate claims service surface for reporting and managing claims.",
+      "source_url": "https://www.geico.com/claims/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "geico-billing-payments",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "account"],
+      "text": "GEICO billing and payment support is handled through account/contact paths that are separate from claims flows.",
+      "source_url": "https://www.geico.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "geico-accessibility-entry",
+      "topic": "accessibility",
+      "tags": ["accessibility", "contact"],
+      "text": "GEICO's public contact pages provide the main entry point for accessibility-related customer support requests.",
+      "source_url": "https://www.geico.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "pnc-claims-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "claims_digital", "proactive_updates", "channel_switching"],
+      "text": "JD Power's 2025 U.S. Claims Digital Experience Study reports persistent gaps in proactive digital claims updates and channel continuity across P&C insurers.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-claims-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-11-17"
+    },
+    {
+      "id": "geico-trustpilot-directional",
+      "topic": "customer_sentiment_signal",
+      "tags": ["trustpilot", "reviews", "claims", "support"],
+      "text": "Trustpilot reviews for GEICO are a directional user-generated signal and often mention service and claims support friction. They are not official GEICO sources.",
+      "source_url": "https://www.trustpilot.com/review/geico.com",
+      "source_type": "third_party_reviews",
+      "effective_date": "2026-02-26"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official contact hub and issue-specific phone directory",
+      "Dedicated claims center",
+      "Clear official support surfaces"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Customers must select among multiple channel and issue paths before getting to resolution",
+      "No public evidence of cross-channel context continuity in one support thread",
+      "No public customer-visible request timeline spanning claims and service support",
+      "No public AI-driven guided next-step planning layer"
+    ]
+  }
+}

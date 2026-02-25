@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from typing import Dict, Iterable, List
 
@@ -84,8 +84,17 @@ class OrchestratorAgent(BaseAgent):
             "booking_agent": BookingAgent(self.booking_tools, self.notification_tools, self.customer_profiles),
             "refund_agent": RefundAgent(self.booking_tools, self.compliance_tools, self.payment_tools),
             "baggage_agent": BaggageAgent(self.crm_tools),
-            "disruption_agent": DisruptionAgent(self.flight_status_tools, self.booking_tools),
-            "compensation_agent": CompensationAgent(self.compliance_tools),
+            "disruption_agent": DisruptionAgent(
+                self.flight_status_tools,
+                self.booking_tools,
+                tenant_slug=self.tenant_slug,
+                tenant_profile=self.tenant_profile,
+            ),
+            "compensation_agent": CompensationAgent(
+                self.compliance_tools,
+                tenant_slug=self.tenant_slug,
+                tenant_profile=self.tenant_profile,
+            ),
             "accessibility_agent": AccessibilityAgent(self.crm_tools),
             "complaint_agent": ComplaintAgent(self.crm_tools),
             "escalation_agent": EscalationAgent(self.crm_tools, self.session_memory),
@@ -306,7 +315,7 @@ class OrchestratorAgent(BaseAgent):
         )
 
     def _secondary_agents_for(self, intent: IntentType) -> list[BaseAgent]:
-        if intent in {IntentType.IRROPS, IntentType.DELAY_INFO}:
+        if intent in {IntentType.IRROPS, IntentType.DELAY_INFO} and self._supports_appr():
             return [self.specialists["compensation_agent"]]
         return []
 
@@ -361,6 +370,18 @@ class OrchestratorAgent(BaseAgent):
         response: AgentResponse,
         sentiment: Dict[str, object],
     ) -> AgentResponse:
+        channel = inbound.channel.value
+        current_context_window = await self.session_memory.get_context_window(channel, inbound.customer_id, inbound.session_id)
+        current_entities = dict(current_context_window.get("entities") or {})
+        effort_state = self._compute_customer_effort(
+            inbound=inbound,
+            triage=triage,
+            response=response,
+            sentiment=sentiment,
+            context_window=current_context_window,
+        )
+        response.metadata.setdefault("customer_effort", effort_state)
+        self._apply_customer_effort_strategy(response, effort_state, inbound)
         if sentiment.get("deescalation_preamble"):
             response.response_text = f"{sentiment['deescalation_preamble']}{response.response_text}"
         response.intent = triage.intent
@@ -393,7 +414,19 @@ class OrchestratorAgent(BaseAgent):
             sentiment=sentiment,
             response=response,
         )
-        channel = inbound.channel.value
+        promise_ledger = self._update_promise_ledger(
+            prior_ledger=current_entities.get("_promise_ledger"),
+            inbound=inbound,
+            triage=triage,
+            response=response,
+            context_window=current_context_window,
+        )
+        response.metadata["promise_ledger"] = promise_ledger
+        plan = response.metadata.get("customer_plan")
+        if isinstance(plan, dict):
+            plan["tracked_promises"] = [p for p in promise_ledger if str(p.get("status")) != "done"][:3]
+            plan["customer_effort"] = effort_state
+            response.metadata["customer_plan"] = plan
         session_updates = self._session_entity_updates_from_response(triage, response)
         await self.session_memory.set_entities(
             channel,
@@ -461,12 +494,22 @@ class OrchestratorAgent(BaseAgent):
         directive = md.get("conversation_directive") if isinstance(md.get("conversation_directive"), dict) else {}
         if not isinstance(directive, dict):
             directive = {}
+        effort = md.get("customer_effort") if isinstance(md.get("customer_effort"), dict) else {}
         if response.metadata.get("followup_choice") or bool(directive.get("avoid_link_dump")):
             response.metadata["citations"] = []
             response.metadata["official_next_steps"] = []
             sso = response.metadata.get("self_service_options")
             if isinstance(sso, list):
                 response.metadata["self_service_options"] = sso[:1]
+        if bool(effort.get("fast_path_active")):
+            # Reduce link/choice clutter when the customer has already spent effort.
+            response.metadata["citations"] = list(response.metadata.get("citations") or [])[:1]
+            response.metadata["official_next_steps"] = list(response.metadata.get("official_next_steps") or [])[:1]
+            sso = response.metadata.get("self_service_options")
+            if isinstance(sso, list):
+                response.metadata["self_service_options"] = sso[:2]
+            if len(response.next_actions) > 3:
+                response.next_actions = response.next_actions[:3]
         if inbound.channel.value == "voice":
             # Keep voice interactions concise and focused.
             response.metadata["voice_mode"] = True
@@ -509,6 +552,7 @@ class OrchestratorAgent(BaseAgent):
             response.metadata.setdefault("self_service_options", self_service_options)
 
     def platform_capabilities_matrix(self) -> Dict[str, bool]:
+        supports_appr = self._supports_appr()
         return {
             "web_chat": True,
             "sms": True,
@@ -518,7 +562,7 @@ class OrchestratorAgent(BaseAgent):
             "booking_changes": True,
             "refunds": True,
             "disruption_status": True,
-            "appr_compensation": True,
+            "appr_compensation": supports_appr,
             "baggage": True,
             "accessibility": True,
             "human_handoff": True,
@@ -527,7 +571,7 @@ class OrchestratorAgent(BaseAgent):
             "escalation_queue": True,
             "proactive_disruption_monitor": True,
             "sentiment_escalation": True,
-            "appr_rules": True,
+            "appr_rules": supports_appr,
             "fraud_channel_guidance": True,
             "official_channel_citations": True,
             "server_side_stt": True,
@@ -536,6 +580,10 @@ class OrchestratorAgent(BaseAgent):
             "upload_document_analysis": True,
             "resolution_tracker": True,
             "post_interaction_summaries": True,
+            "promise_ledger": True,
+            "customer_effort_budgeting": True,
+            "memory_freshness_confirmation": True,
+            "public_guidance_contradiction_detection": True,
             "durable_local_persistence": True,
             # Not yet fully implemented / external dependencies:
             "real_flight_status_api": False,
@@ -550,6 +598,18 @@ class OrchestratorAgent(BaseAgent):
     def _build_customer_plan(self, intent_value: str, response: AgentResponse, entities: Dict[str, object]) -> Dict[str, object]:
         stage = response.state.value
         md = response.metadata if isinstance(response.metadata, dict) else {}
+        domain_workflow = md.get("domain_workflow")
+        if isinstance(domain_workflow, dict):
+            plan = {
+                "intent": str(domain_workflow.get("workflow_key") or domain_workflow.get("type") or intent_value),
+                "stage": stage,
+                "escalate": response.escalate,
+                "what_i_can_do_now": list(domain_workflow.get("what_i_can_do_now") or []),
+                "what_i_need_from_you": list(domain_workflow.get("what_i_need_from_you") or []),
+                "prepared_context": list(domain_workflow.get("prepared_context") or []),
+                "service_commitments": list(domain_workflow.get("service_commitments") or []),
+            }
+            return self._retarget_brand_in_obj(plan)
         common_commitments = [
             "I will keep context in this conversation so you do not need to repeat details.",
             "I will point you to official Flair channels or pages when self-service or escalation is better.",
@@ -642,6 +702,18 @@ class OrchestratorAgent(BaseAgent):
             "prepared_context": prepared_context,
             "service_commitments": common_commitments,
         }
+        effort = md.get("customer_effort")
+        if isinstance(effort, dict):
+            plan["customer_effort"] = {
+                "score": effort.get("score"),
+                "level": effort.get("level"),
+                "fast_path_active": bool(effort.get("fast_path_active")),
+                "message": effort.get("customer_message"),
+            }
+            if bool(effort.get("fast_path_active")):
+                plan["service_commitments"].append("I will use a shorter path and avoid unnecessary steps from here.")
+        if isinstance(md.get("promise_ledger"), list):
+            plan["tracked_promises"] = [p for p in md.get("promise_ledger", []) if str(p.get("status")) != "done"][:3]
         return self._retarget_brand_in_obj(plan)
 
     def _apply_followup_override(self, user_text: str, triage: TriageResult, entities: Dict[str, object]) -> TriageResult:
@@ -965,7 +1037,8 @@ class OrchestratorAgent(BaseAgent):
                 "Do not add generic help-centre/contact-channel explanations unless the draft explicitly requires them for the next step. "
                 "Do not mention internal tools, CRM, tickets, metadata, or implementation details unless the customer explicitly asks. "
                 "If the customer said a short follow-up like yes/no, interpret it in the context of the draft response rather than treating it as a new topic. "
-                "If this is a voice turn, keep the response short, phone-friendly, and ask at most one follow-up question."
+                "If this is a voice turn, keep the response short, phone-friendly, and ask at most one follow-up question. "
+                "If customer effort is high, minimize questions and offer the fastest reasonable next step."
             ),
             user_prompt=inbound.content,
             context={
@@ -980,6 +1053,7 @@ class OrchestratorAgent(BaseAgent):
                 "entities": entities,
                 "sentiment": {"emotion": sentiment.get("emotion"), "arousal": sentiment.get("arousal")},
                 "conversation_directive": (response.metadata.get("conversation_directive") if isinstance(response.metadata, dict) else {}),
+                "customer_effort": (response.metadata.get("customer_effort") if isinstance(response.metadata, dict) else {}),
             },
             response_format="text",
         )
@@ -993,6 +1067,310 @@ class OrchestratorAgent(BaseAgent):
         response.metadata["llm_rewritten"] = True
         response.metadata["llm_rewriter"] = {"provider": llm_result.provider, "model": llm_result.model}
         return response
+
+    def _compute_customer_effort(
+        self,
+        *,
+        inbound: InboundMessage,
+        triage: TriageResult,
+        response: AgentResponse,
+        sentiment: Dict[str, object],
+        context_window: Dict[str, object],
+    ) -> Dict[str, object]:
+        history = context_window.get("history") if isinstance(context_window, dict) else []
+        if not isinstance(history, list):
+            history = []
+        user_turns = sum(1 for item in history if isinstance(item, dict) and item.get("role") == "user")
+        assistant_turns = sum(1 for item in history if isinstance(item, dict) and item.get("role") == "assistant")
+        entities = context_window.get("entities") if isinstance(context_window, dict) else {}
+        if not isinstance(entities, dict):
+            entities = {}
+
+        score = 0
+        reasons: List[str] = []
+
+        if user_turns >= 3:
+            score += 1
+            reasons.append("multiple_turns")
+        if user_turns >= 6:
+            score += 2
+            reasons.append("long_conversation")
+        if response.state == ConversationState.CONFIRMING:
+            score += 1
+            reasons.append("waiting_on_details")
+        if inbound.channel.value == "voice" and response.state == ConversationState.CONFIRMING:
+            score += 1
+            reasons.append("voice_detail_collection")
+
+        try:
+            valence = float(sentiment.get("valence", 0.0) or 0.0)
+        except Exception:
+            valence = 0.0
+        if valence <= -0.35:
+            score += 1
+            reasons.append("negative_sentiment")
+        if valence <= -0.65:
+            score += 1
+            reasons.append("strong_negative_sentiment")
+        try:
+            consecutive_negative = int(sentiment.get("consecutive_negative_turns", 0) or 0)
+        except Exception:
+            consecutive_negative = 0
+        if consecutive_negative >= 2:
+            score += 2
+            reasons.append("repeated_negative_turns")
+
+        last_intent = str(entities.get("_last_intent") or "")
+        last_next_actions = entities.get("_last_next_actions")
+        overlap = 0
+        if isinstance(last_next_actions, list):
+            overlap = len(set(str(x) for x in last_next_actions) & set(str(x) for x in (response.next_actions or [])))
+        if (
+            last_intent == triage.intent.value
+            and response.state == ConversationState.CONFIRMING
+            and overlap >= 1
+            and user_turns >= 2
+        ):
+            score += 2
+            reasons.append("repeat_step_risk")
+
+        lower = (inbound.content or "").strip().lower()
+        if len(lower) <= 12 and user_turns >= 4:
+            score += 1
+            reasons.append("short_followups_after_multiple_turns")
+
+        score = max(0, min(10, score))
+        if score >= 7:
+            level = "high"
+        elif score >= 4:
+            level = "medium"
+        else:
+            level = "low"
+
+        fast_path_active = level == "high" or (level == "medium" and bool(sentiment.get("deescalation_preamble")))
+        customer_message = {
+            "low": "Normal support path active.",
+            "medium": "I will keep this efficient and avoid unnecessary steps.",
+            "high": "Fast path active: I will reduce back-and-forth and prioritize the quickest safe next step.",
+        }[level]
+        return {
+            "score": score,
+            "level": level,
+            "fast_path_active": fast_path_active,
+            "reasons": reasons[:6],
+            "user_turns": user_turns,
+            "assistant_turns": assistant_turns,
+            "customer_message": customer_message,
+        }
+
+    def _apply_customer_effort_strategy(
+        self,
+        response: AgentResponse,
+        effort: Dict[str, object],
+        inbound: InboundMessage,
+    ) -> None:
+        if not isinstance(effort, dict):
+            return
+        if not bool(effort.get("fast_path_active")):
+            return
+        if response.state in {ConversationState.CONFIRMING, ConversationState.PROCESSING}:
+            if "human_agent_if_urgent" not in response.next_actions:
+                response.next_actions.append("human_agent_if_urgent")
+        if len(response.next_actions) > 4:
+            response.next_actions = response.next_actions[:4]
+        if inbound.channel.value == "voice":
+            parts = re.split(r"(?<=[.!?])\s+", str(response.response_text or "").strip())
+            if len(parts) > 2:
+                response.response_text = " ".join(parts[:2]).strip()
+        else:
+            text = str(response.response_text or "").strip()
+            if len(text) > 520 and response.state == ConversationState.CONFIRMING:
+                parts = re.split(r"(?<=[.!?])\s+", text)
+                if len(parts) > 3:
+                    response.response_text = " ".join(parts[:3]).strip()
+        response.metadata["effort_fast_path_applied"] = True
+
+    def _update_promise_ledger(
+        self,
+        *,
+        prior_ledger: object,
+        inbound: InboundMessage,
+        triage: TriageResult,
+        response: AgentResponse,
+        context_window: Dict[str, object],
+    ) -> List[Dict[str, object]]:
+        now_iso = datetime.utcnow().isoformat()
+        ledger_map: Dict[str, Dict[str, object]] = {}
+        if isinstance(prior_ledger, list):
+            for item in prior_ledger:
+                if not isinstance(item, dict):
+                    continue
+                key = str(item.get("id") or "").strip()
+                if not key:
+                    continue
+                ledger_map[key] = {
+                    "id": key,
+                    "title": str(item.get("title") or ""),
+                    "summary": str(item.get("summary") or ""),
+                    "status": str(item.get("status") or "active"),
+                    "updated_at": str(item.get("updated_at") or now_iso),
+                }
+
+        def upsert(item_id: str, title: str, summary: str, status: str) -> None:
+            existing = ledger_map.get(item_id, {})
+            ledger_map[item_id] = {
+                "id": item_id,
+                "title": title,
+                "summary": summary,
+                "status": status,
+                "updated_at": now_iso,
+                "created_at": str(existing.get("created_at") or now_iso),
+                "due_at": existing.get("due_at"),
+                "customer_reminder": existing.get("customer_reminder"),
+                "auto_followup": bool(existing.get("auto_followup", False)),
+            }
+
+        brand = self._tenant_brand_display()
+        upsert(
+            "context_continuity",
+            "No-repeat continuity",
+            "I will keep your details in this conversation so you do not have to repeat them.",
+            "active",
+        )
+
+        if response.state == ConversationState.CONFIRMING:
+            pending_actions = [str(a).replace("_", " ") for a in (response.next_actions or [])[:3]]
+            summary = "I will keep the next step ready so you can continue from where you left off."
+            if pending_actions:
+                summary = f"Next step is ready: {', '.join(pending_actions)}."
+            upsert("next_step_ready", "Next step prepared", summary, "active")
+        elif response.state == ConversationState.RESOLVED:
+            if "next_step_ready" in ledger_map:
+                ledger_map["next_step_ready"]["status"] = "done"
+                ledger_map["next_step_ready"]["updated_at"] = now_iso
+
+        md = response.metadata if isinstance(response.metadata, dict) else {}
+        if response.escalate:
+            upsert(
+                "human_handoff_context",
+                "Human handoff prepared",
+                f"I will preserve this conversation context for {brand} support so you do not have to start over.",
+                "active",
+            )
+        if isinstance(md.get("refund"), dict):
+            refund_id = str((md.get("refund") or {}).get("refund_id") or "").strip()
+            upsert(
+                "refund_progress",
+                "Refund request submitted",
+                f"I submitted your refund request{f' ({refund_id})' if refund_id else ''} and will keep the next steps visible here.",
+                "done",
+            )
+        if isinstance(md.get("voucher"), dict):
+            amount = (md.get("voucher") or {}).get("voucher_value_cad")
+            upsert(
+                "travel_credit_progress",
+                "Travel credit issued",
+                f"I issued travel credit{f' for ${amount} CAD' if amount is not None else ''}.",
+                "done",
+            )
+        if isinstance(md.get("booking"), dict):
+            booking_status = str((md.get("booking") or {}).get("status") or "").upper()
+            if booking_status == "REBOOKED":
+                upsert(
+                    "booking_change_progress",
+                    "Rebooking completed",
+                    "I updated the booking and kept the updated trip details in this conversation.",
+                    "done",
+                )
+            elif booking_status == "CANCELLED":
+                upsert(
+                    "booking_change_progress",
+                    "Cancellation completed",
+                    "I updated the booking status and kept the next steps in this conversation.",
+                    "done",
+                )
+        if isinstance(md.get("flight_status"), dict) and any(a in (response.next_actions or []) for a in ["confirm_rebooking_option", "rebooking_options", "compensation_check"]):
+            upsert(
+                "recovery_options_ready",
+                "Recovery options prepared",
+                "I checked the latest status and prepared recovery options in this conversation.",
+                "active",
+            )
+        if isinstance(md.get("workflow_artifact"), dict):
+            wf_title = str((md.get("workflow_artifact") or {}).get("title") or "workflow guidance")
+            upsert(
+                "workflow_guidance_ready",
+                "Workflow guidance prepared",
+                f"I prepared the next-step workflow guidance for {wf_title.lower()}.",
+                "active",
+            )
+
+        # Promise Keeper: assign lightweight follow-up windows so overdue commitments can be highlighted.
+        due_rules = {
+            "human_handoff_context": {
+                "hours": 6,
+                "reminder": f"If you have not heard back yet, I can help you continue with {brand} support without restarting.",
+            },
+            "refund_progress": {
+                "hours": 24,
+                "reminder": "If your refund status has not changed, I can help you check the next step or prepare a follow-up.",
+            },
+            "recovery_options_ready": {
+                "hours": 4,
+                "reminder": "If your plans changed, I can refresh recovery options and the fastest next step.",
+            },
+            "next_step_ready": {
+                "hours": 24,
+                "reminder": "I still have your next step ready if you want to continue where you left off.",
+            },
+            "workflow_guidance_ready": {
+                "hours": 24,
+                "reminder": "I can continue this workflow without you starting over.",
+            },
+        }
+        for item_id, item in list(ledger_map.items()):
+            rule = due_rules.get(item_id)
+            if not rule:
+                continue
+            item["auto_followup"] = True
+            item["customer_reminder"] = str(rule.get("reminder") or "")
+            created_at_raw = str(item.get("created_at") or now_iso)
+            try:
+                created_dt = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00")).replace(tzinfo=None)
+            except Exception:
+                created_dt = datetime.utcnow()
+            due_at = created_dt + timedelta(hours=int(rule.get("hours") or 24))
+            item["due_at"] = due_at.isoformat()
+            if str(item.get("status")) == "active" and datetime.utcnow() > due_at:
+                item["status"] = "overdue"
+                item["updated_at"] = now_iso
+                # Do not overwrite with a harsher tone if the item was already marked for review.
+                if item.get("customer_reminder"):
+                    item["summary"] = str(item["customer_reminder"])
+
+        # If the session has been quiet for a long time, flag active promises as needing reconfirmation.
+        try:
+            updated_at = str(context_window.get("updated_at") or "")
+            age_seconds = 0.0
+            if updated_at:
+                dt = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+                age_seconds = abs((datetime.utcnow() - dt.replace(tzinfo=None)).total_seconds())
+            if age_seconds > 7 * 24 * 60 * 60:
+                for item in ledger_map.values():
+                    if str(item.get("status")) == "active":
+                        item["status"] = "review"
+                        item["summary"] = "This request may be older. I will confirm details before continuing."
+                        item["updated_at"] = now_iso
+        except Exception:
+            pass
+
+        status_rank = {"overdue": 0, "active": 1, "review": 2, "done": 3}
+        ordered = sorted(
+            ledger_map.values(),
+            key=lambda x: (status_rank.get(str(x.get("status")), 9), str(x.get("updated_at") or "")),
+            reverse=False,
+        )
+        return ordered[:8]
 
     def _session_entity_updates_from_response(self, triage: TriageResult, response: AgentResponse) -> Dict[str, object]:
         updates: Dict[str, object] = {
@@ -1042,6 +1420,10 @@ class OrchestratorAgent(BaseAgent):
             updates["_last_refund"] = md["refund"]
         if "voucher" in md and isinstance(md.get("voucher"), dict):
             updates["_last_voucher"] = md["voucher"]
+        if isinstance(md.get("promise_ledger"), list):
+            updates["_promise_ledger"] = md.get("promise_ledger", [])
+        if isinstance(md.get("customer_effort"), dict):
+            updates["_customer_effort"] = md.get("customer_effort", {})
         return updates
 
     def _tenant_brand_display(self) -> str:
@@ -1064,6 +1446,18 @@ class OrchestratorAgent(BaseAgent):
             if value:
                 return str(value)
         return None
+
+    def _supports_appr(self) -> bool:
+        if self.tenant_slug == "flair":
+            return True
+        md = (self.tenant_profile.metadata if self.tenant_profile else {}) or {}
+        if bool(md.get("supports_appr")):
+            return True
+        if str(md.get("country_focus") or "").lower() == "canada":
+            return True
+        if str(getattr(self.tenant_profile, "locale", "") or "").lower().endswith("ca"):
+            return True
+        return False
 
     def _retarget_brand_text(self, text: str) -> str:
         clean = str(text or "")

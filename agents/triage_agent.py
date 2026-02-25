@@ -15,6 +15,7 @@ class TriageAgent(BaseAgent):
 
     async def classify(self, message: AgentMessage) -> TriageResult:
         text = message.inbound.content
+        tenant_slug = str(message.inbound.metadata.get("tenant", "") or "").lower()
         language = self._detect_language(text, message.inbound.metadata)
         llm_result = await self.llm.classify_intent(
             text=text,
@@ -33,6 +34,7 @@ class TriageAgent(BaseAgent):
         # for generic billing/refund prompts (e.g., "charge issue"), which harms UX.
         escalate = self._should_escalate(text, urgency)
         intent = self._post_process_intent(text, intent)
+        intent = self._post_process_intent_for_tenant(text, intent, tenant_slug)
         # Keep routing deterministic and aligned with the final intent. This avoids LLM-suggested
         # agent mismatches (e.g., refund/charge questions incorrectly jumping to escalation).
         suggested_agent = self._suggested_agent(intent)
@@ -133,4 +135,24 @@ class TriageAgent(BaseAgent):
             return IntentType.BOOKING_CHANGE
         if any(k in lower for k in ["duplicate charge", "unauthorized charge", "charged twice", "charge issue", "billing issue", "payment issue"]) and intent == IntentType.GENERAL_INQUIRY:
             return IntentType.REFUND
+        return intent
+
+    def _post_process_intent_for_tenant(self, text: str, intent: IntentType, tenant_slug: str) -> IntentType:
+        lower = text.lower()
+        non_airline = tenant_slug and tenant_slug not in {"", "flair", "frontier", "airline_template"}
+        if not non_airline:
+            return intent
+        # Insurance/health/utility/telecom demos reuse the airline intent enum. Prevent false airline mappings.
+        if intent == IntentType.COMPENSATION_CLAIM and any(
+            k in lower for k in ["claim status", "status of my claim", "medical claim", "insurance claim", "claim denied", "prior authorization", "coverage"]
+        ):
+            return IntentType.GENERAL_INQUIRY
+        if intent == IntentType.REFUND and any(
+            k in lower for k in ["policy billing", "billing issue on my policy", "premium", "utility bill", "internet bill", "member billing", "coverage question"]
+        ):
+            return IntentType.GENERAL_INQUIRY
+        if intent == IntentType.REFUND and ("billing issue" in lower or "payment issue" in lower) and any(
+            k in lower for k in ["policy", "account", "member", "premium", "utility", "internet", "service"]
+        ):
+            return IntentType.GENERAL_INQUIRY
         return intent

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import List
 
 from agents.base import BaseAgent
@@ -29,6 +30,32 @@ class RefundAgent(BaseAgent):
         tools: List[ToolCallRecord] = []
         pending_refund = entities.get("_pending_refund_amount_cad")
         last_next_actions = [str(x) for x in (entities.get("_last_next_actions") or [])] if isinstance(entities.get("_last_next_actions"), list) else []
+        explicit_pnr = self._extract_explicit_pnr(message.inbound.content)
+        pnr_age_seconds = self._entity_age_seconds(message, "booking_reference")
+        is_pending_decision_reply = stripped in {"yes", "no", "nope", "not now", "do it", "go ahead", "confirm"} and bool(pending_refund)
+
+        if (
+            pnr
+            and not explicit_pnr
+            and not is_pending_decision_reply
+            and self._looks_like_new_refund_request(text)
+            and pnr_age_seconds is not None
+            and pnr_age_seconds > 12 * 60 * 60
+        ):
+            hours = max(1, round(pnr_age_seconds / 3600))
+            return AgentResponse(
+                session_id=message.inbound.session_id,
+                customer_id=message.inbound.customer_id,
+                state=ConversationState.CONFIRMING,
+                response_text=(
+                    f"I still have a booking reference from earlier in this conversation ({pnr}). "
+                    f"Do you want me to use that booking for the refund or charge review, or would you like to share a different booking reference? "
+                    f"(It was last provided about {hours} hour{'s' if hours != 1 else ''} ago.)"
+                ),
+                agent=self.name,
+                next_actions=["confirm_saved_booking_reference", "provide_booking_reference"],
+                metadata={"memory_confirmation": {"field": "booking_reference", "value": pnr, "age_seconds": pnr_age_seconds}},
+            )
 
         if any(k in text for k in ["charge issue", "billing issue", "payment issue"]):
             return AgentResponse(
@@ -195,3 +222,39 @@ class RefundAgent(BaseAgent):
             next_actions=["submit_refund", "choose_travel_credit"],
             metadata={"refund_amount_cad": refund_amount, "refund_timeline_days": timeline["timeline_days"]},
         )
+
+    def _entity_age_seconds(self, message: AgentMessage, field: str) -> int | None:
+        ctx_window = message.context.get("context_window") if isinstance(message.context, dict) else None
+        if not isinstance(ctx_window, dict):
+            return None
+        ages = ctx_window.get("entity_freshness_seconds")
+        if not isinstance(ages, dict):
+            return None
+        try:
+            return int(ages.get(field))
+        except Exception:
+            return None
+
+    def _extract_explicit_pnr(self, text: str) -> str | None:
+        upper = (text or "").upper()
+        for match in re.finditer(r"\b([A-Z0-9]{6})\b", upper):
+            value = match.group(1)
+            if any(ch.isdigit() for ch in value) and not value.startswith("F8"):
+                return value
+        return None
+
+    def _looks_like_new_refund_request(self, lower_text: str) -> bool:
+        lower = (lower_text or "").lower()
+        if not lower:
+            return False
+        triggers = [
+            "refund",
+            "charge",
+            "billing",
+            "payment issue",
+            "duplicate charge",
+            "charged twice",
+            "unauthorized",
+            "credit",
+        ]
+        return any(t in lower for t in triggers)

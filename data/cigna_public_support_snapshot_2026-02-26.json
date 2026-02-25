@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Cigna",
+  "entries": [
+    {
+      "id": "cigna-contact-us",
+      "topic": "contact",
+      "tags": ["contact", "customer_service", "support"],
+      "text": "Cigna's official Contact Us page provides customer and member support entry points and issue routing.",
+      "source_url": "https://www.cigna.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "cigna-contact-numbers",
+      "topic": "member_support",
+      "tags": ["phone", "member_services", "contact_numbers"],
+      "text": "Cigna publishes a contact number directory that customers often need to navigate before reaching the correct support team.",
+      "source_url": "https://www.cigna.com/contact-us/contact-numbers",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "cigna-mycigna-portal",
+      "topic": "digital_self_service",
+      "tags": ["member_portal", "self_service", "claims", "benefits"],
+      "text": "myCigna is a separate official member portal for claims, benefits, and account actions.",
+      "source_url": "https://my.cigna.com/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "cigna-claims-billing-routing",
+      "topic": "claims",
+      "tags": ["claims", "billing", "member_support", "routing"],
+      "text": "Claims and billing questions are generally handled through member support and portal paths, which can require customers to choose the right route before they get help.",
+      "source_url": "https://www.cigna.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "healthcare-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "health_plans", "digital_experience", "member_support"],
+      "text": "JD Power's 2025 U.S. Healthcare Digital Experience Study reports material gaps in health-plan digital usability and navigation, which can increase support effort and repeat contacts.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-healthcare-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-10-16"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official contact and member support pages exist",
+      "Official member portal supports self-service account and claims activity",
+      "Published contact-number directories improve coverage for multiple support needs"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Support journeys are split across contact pages, number directories, and portal experiences",
+      "No public evidence of one support thread that preserves context across chat, voice, and handoff",
+      "No public customer-visible support tracker spanning member support interactions",
+      "No public proactive support orchestration layer for claim or authorization follow-up"
+    ]
+  }
+}

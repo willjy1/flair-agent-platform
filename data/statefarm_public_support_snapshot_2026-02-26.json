@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "State Farm",
+  "entries": [
+    {
+      "id": "statefarm-customer-care",
+      "topic": "contact",
+      "tags": ["customer_care", "contact", "support"],
+      "text": "State Farm provides official customer care pages for existing customers, including access to customer support paths.",
+      "source_url": "https://www.statefarm.com/customer-care/welcome/existing-customers",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "statefarm-claims",
+      "topic": "claims",
+      "tags": ["claims", "report_claim", "claim_status", "support"],
+      "text": "State Farm has a separate official claims experience for reporting and managing claims, distinct from general customer care pages.",
+      "source_url": "https://www.statefarm.com/claims",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "statefarm-billing-customer-care",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "customer_care", "support"],
+      "text": "State Farm customer care and billing guidance pages cover billing/payment support, often requiring customers to choose the right path before getting help.",
+      "source_url": "https://www.statefarm.com/customer-care/manage-your-accounts/insurance-payment-plans/understanding-your-insurance-bill",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "statefarm-faq",
+      "topic": "digital_self_service",
+      "tags": ["faq", "self_service", "insurance"],
+      "text": "State Farm's FAQs provide separate support information and self-service guidance for insurance servicing topics.",
+      "source_url": "https://www.statefarm.com/customer-care/faqs/insurance",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "pnc-claims-digital-gap-jdpower-statefarm-context",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "claims_digital", "channel_switching", "status_updates"],
+      "text": "JD Power's 2025 U.S. Claims Digital Experience Study highlights continued channel switching and inadequate proactive digital updates during claims across P&C insurance.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-claims-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-11-17"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Dedicated claims experience and customer care pages",
+      "Strong FAQ and self-service coverage",
+      "Published billing/support guidance"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Claims, billing, and support paths remain separated across multiple surfaces",
+      "No public evidence of one continuous support thread across voice/chat/handoff",
+      "No public customer-visible request tracker across customer-care and claims conversations",
+      "No public proactive support orchestration layer for claim follow-up and issue recovery"
+    ]
+  }
+}

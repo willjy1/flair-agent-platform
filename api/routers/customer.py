@@ -155,6 +155,9 @@ def _looks_trackable_response(intent: str | None, state: str, agent: str, debug_
             return True
         if "get_realtime_status" in tool_names and (payload.get("next_actions") or state != "RESOLVED"):
             return True
+    artifacts = payload.get("resolution_artifacts") if isinstance(payload, dict) else None
+    if intent == "GENERAL_INQUIRY" and isinstance(artifacts, dict) and isinstance(artifacts.get("workflow_artifact"), dict):
+        return True
     return False
 
 
@@ -196,6 +199,31 @@ def _reference_payload(record: SupportReferenceRecord) -> Dict[str, Any]:
         "created_at": record.created_at,
         "updated_at": record.updated_at,
         "metadata": record.metadata,
+    }
+
+
+def _promise_keeper_present(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    active = 0
+    overdue = 0
+    done = 0
+    for item in items:
+        status = str(item.get("status") or "").lower()
+        if status == "done":
+            done += 1
+        elif status == "overdue":
+            overdue += 1
+        else:
+            active += 1
+    return {
+        "active": active,
+        "overdue": overdue,
+        "done": done,
+        "has_overdue": overdue > 0,
+        "message": (
+            "I am tracking follow-up commitments and will flag anything that looks overdue."
+            if not overdue
+            else "One or more follow-up commitments may be overdue. I can help you continue from the fastest next step."
+        ),
     }
 
 
@@ -270,6 +298,14 @@ def _tenant_branding(orchestrator, tenant_slug: str) -> Dict[str, Any]:
 
 def _response_resolution_artifacts(payload: Dict[str, Any], metadata: Dict[str, Any]) -> Dict[str, Any]:
     artifacts: Dict[str, Any] = {}
+    if isinstance(metadata.get("workflow_artifact"), dict):
+        wf = dict(metadata.get("workflow_artifact") or {})
+        artifacts["workflow_artifact"] = {
+            "title": wf.get("title"),
+            "summary": wf.get("summary"),
+            "required_details": list(wf.get("required_details") or []),
+            "next_steps": list(wf.get("next_steps") or []),
+        }
     if isinstance(metadata.get("flight_status"), dict):
         status = dict(metadata.get("flight_status") or {})
         artifacts["flight_status"] = {
@@ -324,6 +360,228 @@ def _response_resolution_artifacts(payload: Dict[str, Any], metadata: Dict[str, 
     return artifacts
 
 
+def _tenant_suggested_starters(orchestrator, tenant_slug: str) -> List[str]:
+    profile = _tenant_profile(orchestrator)
+    md = dict(getattr(profile, "metadata", {}) or {})
+    starters = list(md.get("suggested_starters") or [])
+    if starters:
+        return starters
+    vertical = str(getattr(profile, "vertical", "") or "").lower()
+    category = str(getattr(profile, "category", "") or "").lower()
+    if vertical == "insurance":
+        return [
+            "What's the status of my claim?",
+            "My claim was denied. What should I do next?",
+            "I have a billing or payment issue on my policy.",
+            "I need help with roadside assistance.",
+            "I want to upload a claim document or photo.",
+        ]
+    if vertical == "health":
+        return [
+            "What's the status of my medical claim?",
+            "I need help with a prior authorization.",
+            "How do I get my member ID card?",
+            "I need to find an in-network specialist.",
+            "I have a billing or premium issue.",
+        ]
+    if vertical == "utilities":
+        return [
+            "Power is out. What should I do?",
+            "I need outage status and restoration updates.",
+            "I have a billing issue on my utility account.",
+            "I need a payment arrangement.",
+            "I need to start or move service.",
+        ]
+    if vertical in {"telecom", "isp"} or "isp" in category:
+        return [
+            "My internet is down. Is there an outage?",
+            "I need help with a technician appointment.",
+            "I have a billing issue on my account.",
+            "I need to reschedule an installation.",
+            "How do I reach human support?",
+        ]
+    if vertical in {"parcel", "logistics"} or "parcel" in category or "delivery" in category:
+        return [
+            "Where is my package?",
+            "My package shows delivered but I did not receive it.",
+            "I need help with a damaged package claim.",
+            "I have a shipping charge issue.",
+            "I want to upload delivery photos or documents.",
+        ]
+    return [
+        "What can you help me with?",
+        "I need help with a billing issue.",
+        "I need a status update on my request.",
+        "I want to continue by phone.",
+        "I need a human agent.",
+    ]
+
+
+def _tenant_ui_strings(orchestrator, tenant_slug: str) -> Dict[str, str]:
+    profile = _tenant_profile(orchestrator)
+    md = dict(getattr(profile, "metadata", {}) or {})
+    vertical = str(getattr(profile, "vertical", "") or "").lower()
+    category = str(getattr(profile, "category", "") or "").lower()
+    defaults = {
+        "brand_subtitle": "Customer support, chat and voice",
+        "composer_placeholder": "Ask a question and I will guide you to the fastest next step...",
+        "alerts_panel_title": "Alerts and recovery options",
+        "alerts_empty_text": "If there are service disruptions or urgent updates relevant to this conversation, options will appear here.",
+        "resolution_panel_title": "Resolution details",
+        "resolution_empty_text": "Status checks, options, estimates, and other actionable details appear here when available.",
+        "plan_context_label": "Details already captured",
+        "plan_context_empty_label": "No key details captured yet",
+        "tracker_empty_text": "Your requests and updates will appear here.",
+        "tracker_error_text": "I couldn't load your updates right now. Try Refresh.",
+        "initial_greeting": f"Hi. I can help with support issues for {_tenant_brand_name(orchestrator)} and keep the next steps clear.",
+        "reset_greeting": f"New conversation started. I can help with customer support issues for {_tenant_brand_name(orchestrator)} and keep the next steps clear.",
+    }
+    if vertical == "travel":
+        defaults.update(
+            {
+                "composer_placeholder": "Ask about status, disruptions, booking changes, refunds, baggage, accessibility, or charge issues...",
+                "alerts_panel_title": "Trip alerts and recovery options",
+                "alerts_empty_text": "No active trip alerts in this conversation yet. Ask about a flight or booking to enable proactive recovery suggestions.",
+                "plan_context_label": "Trip details already captured",
+                "plan_context_empty_label": "No trip details captured yet",
+                "initial_greeting": f"Hi. I can help with trip status, disruptions, rebooking, cancellations, refunds, baggage, accessibility, and human support for {_tenant_brand_name(orchestrator)}.",
+                "reset_greeting": f"New conversation started. I can help with trip status, disruptions, rebooking, cancellations, refunds, baggage, accessibility, and human support for {_tenant_brand_name(orchestrator)}.",
+            }
+        )
+    elif vertical == "insurance":
+        defaults.update(
+            {
+                "composer_placeholder": "Ask about claims, billing, coverage questions, roadside assistance, or policy support...",
+                "alerts_panel_title": "Claim and service alerts",
+                "alerts_empty_text": "Claim updates or urgent service guidance will appear here when this conversation has enough details.",
+                "initial_greeting": f"Hi. I can help with claims, billing, policy support, roadside assistance, and human support for {_tenant_brand_name(orchestrator)}.",
+                "reset_greeting": f"New conversation started. I can help with claims, billing, policy support, roadside assistance, and human support for {_tenant_brand_name(orchestrator)}.",
+            }
+        )
+    elif vertical == "health":
+        defaults.update(
+            {
+                "composer_placeholder": "Ask about claim status, prior authorization, benefits, provider search, member ID cards, or billing...",
+                "alerts_panel_title": "Care and claims updates",
+                "alerts_empty_text": "Claim, prior authorization, or coverage follow-up guidance will appear here when relevant.",
+                "initial_greeting": f"Hi. I can help with member support for {_tenant_brand_name(orchestrator)} including claims, prior authorization, benefits, billing, and provider guidance.",
+                "reset_greeting": f"New conversation started. I can help with member support issues for {_tenant_brand_name(orchestrator)} including claims, prior auth, benefits, billing, and provider guidance.",
+            }
+        )
+    elif vertical == "utilities":
+        defaults.update(
+            {
+                "composer_placeholder": "Ask about outages, restoration, billing, payment arrangements, or start/stop/move service...",
+                "alerts_panel_title": "Outage alerts and recovery options",
+                "alerts_empty_text": "Outage and restoration guidance will appear here when this conversation includes service details.",
+                "initial_greeting": f"Hi. I can help with outages, billing, service requests, and support handoff for {_tenant_brand_name(orchestrator)}.",
+                "reset_greeting": f"New conversation started. I can help with outages, billing, service requests, and support handoff for {_tenant_brand_name(orchestrator)}.",
+            }
+        )
+    elif vertical in {"telecom", "isp"} or "isp" in category:
+        defaults.update(
+            {
+                "composer_placeholder": "Ask about outages, appointments, billing, installation, or account support...",
+                "alerts_panel_title": "Service alerts and recovery options",
+                "alerts_empty_text": "Service interruption and appointment guidance will appear here when relevant.",
+                "initial_greeting": f"Hi. I can help with service interruptions, appointments, billing, and support escalation for {_tenant_brand_name(orchestrator)}.",
+                "reset_greeting": f"New conversation started. I can help with service interruptions, appointments, billing, and support escalation for {_tenant_brand_name(orchestrator)}.",
+            }
+        )
+    elif vertical in {"parcel", "logistics"} or "parcel" in category or "delivery" in category:
+        defaults.update(
+            {
+                "composer_placeholder": "Ask about package tracking, delivery issues, damaged shipments, claims, or shipping charges...",
+                "alerts_panel_title": "Shipment alerts and recovery options",
+                "alerts_empty_text": "Shipment status and delivery issue guidance will appear here when relevant.",
+                "initial_greeting": f"Hi. I can help with tracking, delivery issues, claims, shipping charges, and support escalation for {_tenant_brand_name(orchestrator)}.",
+                "reset_greeting": f"New conversation started. I can help with tracking, delivery issues, claims, shipping charges, and support escalation for {_tenant_brand_name(orchestrator)}.",
+            }
+        )
+    defaults.update({k: str(v) for k, v in md.items() if k in defaults and isinstance(v, str)})
+    return defaults
+
+
+def _tenant_differentiators(orchestrator) -> List[str]:
+    profile = _tenant_profile(orchestrator)
+    vertical = str(getattr(profile, "vertical", "") or "").lower()
+    md = dict(getattr(profile, "metadata", {}) or {})
+    custom = md.get("differentiators")
+    if isinstance(custom, list) and custom:
+        return [str(x) for x in custom]
+    base = [
+        "One support conversation across text and voice with context continuity",
+        "Trackable request updates and follow-up summaries",
+        "Guided next steps with official source-backed links",
+        "Promise tracking and low-effort fast-path support behavior",
+    ]
+    if vertical == "travel":
+        base.append("Proactive trip alert and recovery preview (demo mode)")
+    elif vertical == "insurance":
+        base.append("Claim workflow intake with document upload and next-step planning")
+    elif vertical == "health":
+        base.append("Member-support workflow guidance for claims, prior auth, and coverage questions")
+    elif vertical == "utilities":
+        base.append("Outage and billing recovery guidance with one-thread continuity")
+    elif vertical in {"telecom", "isp"}:
+        base.append("Service interruption and appointment support in one conversation")
+    elif vertical in {"parcel", "logistics"}:
+        base.append("Package tracking, delivery-issue, and claim support in one conversation")
+    else:
+        base.append("Customer-resolution workflows instead of a FAQ-only bot")
+    return base
+
+
+def _tenant_current_limitations(orchestrator) -> List[str]:
+    profile = _tenant_profile(orchestrator)
+    vertical = str(getattr(profile, "vertical", "") or "").lower()
+    base = [
+        "Real CRM/helpdesk APIs are not connected in this local build",
+        "Voice quality depends on browser audio capture and configured STT/TTS providers",
+    ]
+    if vertical == "travel":
+        return [
+            "Real booking, rebooking, and refund APIs are not connected in this local build",
+            "Flight status and booking actions use mock tools in development mode",
+            *base,
+        ]
+    if vertical == "insurance":
+        return [
+            "Real claims, policy, and billing APIs are not connected in this local build",
+            "Claim status and billing workflows use demo guidance and mock tools in development mode",
+            *base,
+        ]
+    if vertical == "health":
+        return [
+            "Real member claims, prior authorization, and benefits APIs are not connected in this local build",
+            "Claims and prior auth workflows use demo guidance and mock tools in development mode",
+            *base,
+        ]
+    if vertical == "utilities":
+        return [
+            "Real outage, billing, and service-order APIs are not connected in this local build",
+            "Outage and account workflows use demo guidance and mock tools in development mode",
+            *base,
+        ]
+    if vertical in {"telecom", "isp"}:
+        return [
+            "Real service status, billing, and appointment systems are not connected in this local build",
+            "Service interruption and account workflows use demo guidance and mock tools in development mode",
+            *base,
+        ]
+    if vertical in {"parcel", "logistics"}:
+        return [
+            "Real shipment tracking, claims, and billing systems are not connected in this local build",
+            "Tracking and delivery-issue workflows use demo guidance and mock tools in development mode",
+            *base,
+        ]
+    return [
+        "Real back-office and service-system APIs are not connected in this local build",
+        "Workflow actions use demo guidance and mock tools in development mode",
+        *base,
+    ]
+
+
 def _safe_customer_error_result(
     *,
     tenant_slug: str,
@@ -368,6 +626,8 @@ def _safe_customer_error_result(
             "what_i_need_from_you": ["retry the request or choose phone support if urgent"],
             "prepared_context": [],
         },
+        "promise_ledger": [],
+        "customer_effort": {"score": 0, "level": "unknown", "fast_path_active": False},
         "support_reference": None,
         "debug": {"error": "customer_endpoint_failed"},
     }
@@ -433,12 +693,16 @@ async def customer_message(payload: CustomerMessageRequest, request: Request):
             "official_next_steps": response.metadata.get("official_next_steps", []),
             "self_service_options": response.metadata.get("self_service_options", []),
             "customer_plan": response.metadata.get("customer_plan", {}),
+            "promise_ledger": response.metadata.get("promise_ledger", []),
+            "promise_keeper": _promise_keeper_present(list(response.metadata.get("promise_ledger", []) or [])),
+            "customer_effort": response.metadata.get("customer_effort", {}),
             "grounding": response.metadata.get("grounding", {}),
             "support_reference": support_reference,
             "debug": {
                 "tool_calls": [t.model_dump(mode="json") for t in response.tool_calls],
             },
         }
+        result["resolution_artifacts"] = _response_resolution_artifacts(result, response.metadata or {})
         debug_tool_calls = list(result["debug"]["tool_calls"])
         if _looks_trackable_response(result.get("intent"), result.get("state", ""), result.get("agent", ""), debug_tool_calls, result):
             existing = _reference_store(request).latest_for_session(tenant_slug, payload.customer_id, payload.session_id)
@@ -479,7 +743,6 @@ async def customer_message(payload: CustomerMessageRequest, request: Request):
             if len(result.get("self_service_options") or []) > 1:
                 result["self_service_options"] = list(result["self_service_options"][:1])
         result["support_reference"] = support_reference
-        result["resolution_artifacts"] = _response_resolution_artifacts(result, response.metadata or {})
         result["follow_up_summary"] = _build_follow_up_summary(payload.content, result)
         return result
     except Exception:
@@ -546,6 +809,9 @@ async def customer_voice_simulate(payload: CustomerMessageRequest, request: Requ
             "official_next_steps": result.get("official_next_steps", []),
             "self_service_options": result.get("self_service_options", []),
             "customer_plan": result.get("customer_plan", {}),
+            "promise_ledger": ((result.get("metadata") or {}).get("promise_ledger") if isinstance(result.get("metadata"), dict) else []),
+            "promise_keeper": _promise_keeper_present(list((((result.get("metadata") or {}).get("promise_ledger")) if isinstance(result.get("metadata"), dict) else []) or [])),
+            "customer_effort": ((result.get("metadata") or {}).get("customer_effort") if isinstance(result.get("metadata"), dict) else {}),
             "grounding": ((result.get("metadata") or {}).get("grounding") if isinstance(result.get("metadata"), dict) else {}),
             "support_reference": support_reference,
             "debug": {
@@ -665,8 +931,11 @@ async def customer_capabilities(request: Request):
     return {
         "product_name": getattr(tenant_profile, "display_name", "Flair Support Agents"),
         "tenant": tenant_slug,
+        "vertical": getattr(tenant_profile, "vertical", None),
+        "category": getattr(tenant_profile, "category", None),
         "customer_facing": True,
         "branding": branding,
+        "ui_strings": _tenant_ui_strings(orchestrator, tenant_slug),
         "support_contact": {
             "brand": contact_ctx.get("brand"),
             "call_center_phone": contact_ctx.get("call_center_phone"),
@@ -686,24 +955,10 @@ async def customer_capabilities(request: Request):
         "support_commitments": getattr(tenant_profile, "support_commitments", []),
         "capabilities": orchestrator.platform_capabilities_matrix(),
         "official_channel_snapshot": orchestrator.knowledge_tools.official_channel_summary(),
-        "current_limitations": [
-            "Real booking and CRM APIs are not connected in this local build",
-            "Flight status and booking actions use mock tools in development mode",
-            "Voice quality depends on browser audio capture and configured TTS provider",
-        ],
-        "differentiators": [
-            "One support conversation across text and voice with context continuity",
-            "Trackable request updates and follow-up summaries",
-            "Guided next steps with official source-backed links",
-            "Proactive trip alert and recovery preview (demo mode)",
-        ],
-        "suggested_starters": [
-            "What's the status of flight F81234?",
-            "I missed my flight and still need to travel today.",
-            "I need a refund for booking AB12CD.",
-            "I was charged twice. What should I do?",
-            "I need wheelchair assistance for my flight.",
-        ],
+        "knowledge_consistency": orchestrator.knowledge_tools.consistency_report(),
+        "current_limitations": _tenant_current_limitations(orchestrator),
+        "differentiators": _tenant_differentiators(orchestrator),
+        "suggested_starters": _tenant_suggested_starters(orchestrator, tenant_slug),
     }
 
 
@@ -810,6 +1065,41 @@ async def list_support_references(customer_id: str, request: Request, tenant: st
     tenant_slug = _resolve_tenant_slug(request, tenant)
     records = _reference_store(request).list_for_customer(tenant_slug, customer_id)
     return {"tenant": tenant_slug, "customer_id": customer_id, "references": [_reference_payload(r) for r in records[:20]]}
+
+
+@router.get("/commitments")
+async def list_customer_commitments(session_id: str, customer_id: str, request: Request, tenant: str | None = None):
+    tenant_slug = _resolve_tenant_slug(request, tenant)
+    orchestrator = _orchestrator(request, tenant_slug)
+    ctx = await orchestrator.session_memory.get_by_session_id(session_id)
+    if not ctx or ctx.customer_id != customer_id:
+        return {
+            "tenant": tenant_slug,
+            "customer_id": customer_id,
+            "session_id": session_id,
+            "commitments": [],
+            "customer_effort": None,
+        }
+    entities = dict(ctx.extracted_entities or {})
+    commitments = entities.get("_promise_ledger") if isinstance(entities.get("_promise_ledger"), list) else []
+    effort = entities.get("_customer_effort") if isinstance(entities.get("_customer_effort"), dict) else None
+    return {
+        "tenant": tenant_slug,
+        "customer_id": customer_id,
+        "session_id": session_id,
+        "commitments": commitments,
+        "promise_keeper": _promise_keeper_present(list(commitments or [])),
+        "customer_effort": effort,
+        "updated_at": ctx.updated_at,
+    }
+
+
+@router.get("/knowledge-consistency")
+async def customer_knowledge_consistency(request: Request, tenant: str | None = None):
+    tenant_slug = _resolve_tenant_slug(request, tenant)
+    orchestrator = _orchestrator(request, tenant_slug)
+    report = orchestrator.knowledge_tools.consistency_report()
+    return {"tenant": tenant_slug, **report}
 
 
 @router.post("/follow-up-summary")

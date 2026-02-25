@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "DHL",
+  "entries": [
+    {
+      "id": "dhl-customer-service-us",
+      "topic": "contact",
+      "tags": ["customer_service", "contact", "shipment_support"],
+      "text": "DHL's official customer service pages provide support routing across shipment, tracking, and account issues.",
+      "source_url": "https://www.dhl.com/us-en/home/customer-service.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "dhl-contact-chat-whatsapp",
+      "topic": "member_support",
+      "tags": ["chat", "whatsapp", "contact", "support_channels"],
+      "text": "DHL public support pages advertise multiple contact channels, including chat and messaging paths, which can still leave customers deciding which path to use first.",
+      "source_url": "https://www.dhl.com/discover/en-us/contact",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "dhl-tracking",
+      "topic": "tracking",
+      "tags": ["tracking", "delivery_status", "shipment_status"],
+      "text": "DHL provides a separate official tracking page for shipment status and delivery updates.",
+      "source_url": "https://www.dhl.com/us-en/home/tracking.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "dhl-claims-and-service-routing",
+      "topic": "claims",
+      "tags": ["claims", "delivery_issue", "support_routing", "specialized_flows"],
+      "text": "Delivery issues and shipment claims are often handled through specialized support and contact paths rather than a unified conversational support thread.",
+      "source_url": "https://www.dhl.com/us-en/home/customer-service.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "parcel-industry-contact-handling-signal-ofcom",
+      "topic": "customer_sentiment_signal",
+      "tags": ["parcel", "contact_handling", "customer_effort", "industry_signal"],
+      "text": "Public parcel-sector research continues to show high issue rates and contact-handling friction, underscoring the value of a guided resolution experience.",
+      "source_url": "https://www.ofcom.org.uk/post/deliveries-and-charges/best-and-worst-parcel-firms-for-customer-satisfaction-revealed-2025",
+      "source_type": "industry_research",
+      "effective_date": "2025-10-22"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Strong tracking capabilities and multi-channel contact options",
+      "Official customer service pages for shipment support",
+      "Global support surface with self-service tooling"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Tracking, contact, claims, and messaging paths are still separate customer journeys",
+      "No public evidence of one support thread preserving context across channels",
+      "No public customer-visible request tracker spanning delivery and claims issues",
+      "No public conversational resolution layer coordinating shipment support end-to-end"
+    ]
+  }
+}

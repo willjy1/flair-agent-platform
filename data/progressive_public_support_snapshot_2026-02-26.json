@@ -1,0 +1,82 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Progressive",
+  "entries": [
+    {
+      "id": "progressive-contact-us",
+      "topic": "contact",
+      "tags": ["contact", "customer_service", "support"],
+      "text": "Progressive's official Contact Us page provides customer support contact paths and issue routing.",
+      "source_url": "https://www.progressive.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "progressive-claims-center",
+      "topic": "claims",
+      "tags": ["claims", "claim_status", "report_claim", "claims_center"],
+      "text": "Progressive's official Claims page is a dedicated claims center for reporting and managing claims, separate from general support pages.",
+      "source_url": "https://www.progressive.com/claims/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "progressive-manage-policy",
+      "topic": "digital_self_service",
+      "tags": ["self_service", "policy", "billing", "account"],
+      "text": "Progressive provides a separate Manage Policy self-service path for account and policy servicing.",
+      "source_url": "https://www.progressive.com/manage-policy/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "progressive-billing-payments",
+      "topic": "billing_payments",
+      "tags": ["billing", "payment", "policy", "support"],
+      "text": "Progressive billing and payment support is typically routed through account management and general contact paths, which can require customers to choose the right flow before getting help.",
+      "source_url": "https://www.progressive.com/manage-policy/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "progressive-accessibility-contact",
+      "topic": "accessibility",
+      "tags": ["accessibility", "contact"],
+      "text": "Progressive's public support and contact pages serve as the entry point for accessibility-related customer service support.",
+      "source_url": "https://www.progressive.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "pnc-claims-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "claims_digital", "proactive_updates", "channel_switching"],
+      "text": "JD Power's 2025 U.S. Claims Digital Experience Study reports that P&C insurers frequently fail to provide adequate proactive digital updates and customers still switch channels and repeat information during claims.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-claims-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-11-17"
+    },
+    {
+      "id": "progressive-trustpilot-directional",
+      "topic": "customer_sentiment_signal",
+      "tags": ["trustpilot", "reviews", "support", "claims"],
+      "text": "Trustpilot reviews for Progressive are user-generated and provide a directional signal of customer-service and claims friction. They are not official Progressive statements.",
+      "source_url": "https://www.trustpilot.com/review/progressive.com",
+      "source_type": "third_party_reviews",
+      "effective_date": "2026-02-26"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Dedicated official claims center",
+      "Official contact/support page",
+      "Separate self-service policy/account management path"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Claims, billing, and general support are split across different surfaces and customer-selected paths",
+      "No public evidence of one support conversation carrying context across chat, voice, and handoff",
+      "No public customer-visible request tracker that follows a support issue end-to-end",
+      "No public proactive claims/status concierge behavior in one thread"
+    ]
+  }
+}

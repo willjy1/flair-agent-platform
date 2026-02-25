@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "UPS",
+  "entries": [
+    {
+      "id": "ups-support-home",
+      "topic": "contact",
+      "tags": ["support", "contact", "customer_service"],
+      "text": "UPS provides an official support home page that routes customers to tracking, claims, and billing support paths.",
+      "source_url": "https://www.ups.com/us/en/support/home.page",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "ups-tracking",
+      "topic": "tracking",
+      "tags": ["tracking", "delivery_status", "shipment_status"],
+      "text": "UPS offers a separate official tracking page for package status and delivery updates.",
+      "source_url": "https://www.ups.com/track",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "ups-claims-support",
+      "topic": "claims",
+      "tags": ["claims", "file_a_claim", "damage", "missing_package"],
+      "text": "UPS uses a separate claims support flow for filing and managing shipment claims.",
+      "source_url": "https://www.ups.com/us/en/support/file-a-claim.page",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "ups-billing-payments-routing",
+      "topic": "billing_payments",
+      "tags": ["billing", "payment", "support", "routing"],
+      "text": "Billing and shipping charge issues are routed through support pages and account paths rather than a unified customer-resolution experience.",
+      "source_url": "https://www.ups.com/us/en/support/home.page",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "parcel-service-industry-signal-ofcom",
+      "topic": "customer_sentiment_signal",
+      "tags": ["parcel", "industry_signal", "contact_handling", "customer_service"],
+      "text": "Public parcel-sector studies continue to show strong demand for better contact handling, status transparency, and issue resolution experiences.",
+      "source_url": "https://www.ofcom.org.uk/post/deliveries-and-charges/best-and-worst-parcel-firms-for-customer-satisfaction-revealed-2025",
+      "source_type": "industry_research",
+      "effective_date": "2025-10-22"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Strong official tracking and claims surfaces",
+      "Official support home for multiple issue types",
+      "Mature self-service pathways for common tasks"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Customers still navigate separate tracking, claims, billing, and support experiences",
+      "No public evidence of a unified support thread across channels",
+      "No public customer-visible issue tracker spanning support and claims interactions",
+      "No public conversational resolution orchestration layer for shipment issues"
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Xfinity",
+  "entries": [
+    {
+      "id": "xfinity-support-hub",
+      "topic": "contact",
+      "tags": ["support", "help_center", "customer_service"],
+      "text": "Xfinity's official Support site is the primary customer support hub with articles, service help, and account support paths.",
+      "source_url": "https://www.xfinity.com/support/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "xfinity-status-center",
+      "topic": "service_status",
+      "tags": ["status", "outage", "service_interruption"],
+      "text": "Xfinity provides a separate official status center for service status and outage-related checks, distinct from the main support hub.",
+      "source_url": "https://www.xfinity.com/support/status",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "xfinity-app-account-support",
+      "topic": "digital_self_service",
+      "tags": ["app", "account", "self_service"],
+      "text": "Xfinity's app/account support guidance sits on separate help pages and app flows, which can create context breaks between support and service-status paths.",
+      "source_url": "https://www.xfinity.com/support/articles/getting-started-with-xfinity-app",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "xfinity-billing-support",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "account_support"],
+      "text": "Billing issues are routed through Xfinity support/account flows rather than a single guided support conversation.",
+      "source_url": "https://www.xfinity.com/support/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "xfinity-appointment-support",
+      "topic": "appointments",
+      "tags": ["appointments", "install", "technician", "support"],
+      "text": "Installation and technician appointment support is handled through support and account channels that are separate from status/outage tools.",
+      "source_url": "https://www.xfinity.com/support/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "isp-satisfaction-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "internet_service_provider", "wired_vs_wireless"],
+      "text": "JD Power's 2025 Residential Internet Service Provider Satisfaction Study shows significantly lower satisfaction for wired internet providers versus wireless providers.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-residential-internet-service-provider-satisfaction-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-05-29"
+    },
+    {
+      "id": "wireless-customer-care-complexity-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "wireless_customer_care", "wait_times", "complexity"],
+      "text": "JD Power's 2025 Wireless Customer Care Study highlights the importance of reducing wait times and simplifying support effort, a pattern relevant to telecom support experiences.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-wireless-customer-care-study-volume-1",
+      "source_type": "industry_research",
+      "effective_date": "2025-02-20"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official support hub and status center",
+      "Dedicated self-service and app support content",
+      "Large support surface with many issue-specific paths"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Service status, billing, appointments, and account support are split across separate surfaces",
+      "No public evidence of one support thread across chat, voice, and follow-up",
+      "No public guided resolution layer that prepares the right details before human handoff",
+      "No public customer-visible support request tracker across channels"
+    ]
+  }
+}

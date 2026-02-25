@@ -1,0 +1,59 @@
+{
+  "slug": "ups",
+  "display_name": "UPS Support Agents",
+  "vertical": "parcel",
+  "category": "parcel_carrier",
+  "locale": "en-US",
+  "support_experience_name": "UPS Support",
+  "customer_capabilities": [
+    "package tracking and delivery status support",
+    "missing delivery and damage claim intake guidance",
+    "shipping charge and billing issue triage",
+    "document/photo upload intake for claims and delivery issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat shipment details.",
+    "Guide customers to the correct tracking, claims, or billing path quickly.",
+    "Prepare clear follow-up summaries and handoff context."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "tracking", "claims", "billing_payments", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "contact", "claims"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "DELAY_INFO": ["tracking", "contact", "digital_self_service"],
+    "IRROPS": ["tracking", "contact", "customer_sentiment_signal"]
+  },
+  "official_channel_topics": ["contact", "tracking", "claims", "billing_payments", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "UPS Support", "url": "https://www.ups.com/us/en/support/home.page", "description": "Official UPS support home." },
+      { "label": "UPS Tracking", "url": "https://www.ups.com/track", "description": "Official UPS package tracking." },
+      { "label": "UPS Claims Support", "url": "https://www.ups.com/us/en/support/file-a-claim.page", "description": "Official UPS claims support and claims filing path." }
+    ],
+    "DELAY_INFO": [
+      { "label": "UPS Tracking", "url": "https://www.ups.com/track", "description": "Official UPS package tracking and delivery status." }
+    ],
+    "REFUND": [
+      { "label": "UPS Support", "url": "https://www.ups.com/us/en/support/home.page", "description": "Official UPS support for billing and service issues." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "UPS",
+    "contact_page_url": "https://www.ups.com/us/en/support/home.page",
+    "help_center_url": "https://www.ups.com/track",
+    "wait_time_disclaimer": "Support availability and wait times may vary.",
+    "brand_mark": "U",
+    "hero_title": "Get UPS support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with package tracking, delivery issues, claims, and billing support without starting over.",
+    "resource_panel_title": "Official UPS support links",
+    "brand_theme": {
+      "accent": "#5b4423",
+      "accent_2": "#8a6d3b",
+      "surface_tint": "#faf7f2",
+      "brand_dark": "#251b0f"
+    }
+  }
+}

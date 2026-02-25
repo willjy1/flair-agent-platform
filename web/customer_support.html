@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title id="pageTitle">Support</title>
-  <link rel="stylesheet" href="/static/customer_support.css?v=20260226f" />
+  <link rel="stylesheet" href="/static/customer_support.css?v=20260226i" />
 </head>
 <body>
   <div class="page-shell">
     <header class="topbar">
       <div class="brand-wrap">
-        <div class="brand-mark" aria-hidden="true">f</div>
+          <div class="brand-mark" aria-hidden="true">S</div>
         <div class="brand-text">
           <div class="brand-name" id="brandName">Support</div>
           <div class="brand-sub" id="brandSub">Customer support, chat and voice</div>
@@ -24,8 +24,8 @@
 
     <main class="content">
       <section class="hero">
-        <h1 id="heroTitle">Get help with your trip in one conversation.</h1>
-        <p id="heroSubtitle">Text or voice. Get clear next steps for flight status, disruptions, booking changes, refunds, baggage, accessibility, and human support without starting over.</p>
+        <h1 id="heroTitle">Get help in one conversation.</h1>
+        <p id="heroSubtitle">Text or voice. Get clear next steps, customer-friendly guidance, and help moving your request forward without starting over.</p>
       </section>
 
       <section class="support-card" aria-label="Customer support chat and voice">
@@ -33,6 +33,7 @@
           <div>
             <h2>Support</h2>
             <p id="statusLine">Connected.</p>
+            <div id="effortBadge" class="effort-badge hidden" aria-live="polite"></div>
           </div>
           <div class="mode-switch" role="tablist" aria-label="Interaction mode">
             <button id="modeTextBtn" class="mode-btn active" type="button" role="tab" aria-selected="true">Text</button>
@@ -49,11 +50,11 @@
         </div>
 
         <div class="quick-actions" id="quickActions" aria-label="Common questions">
-          <button type="button" data-msg="What is the status of flight F81234?">Flight status</button>
-          <button type="button" data-msg="I need to rebook booking AB12CD because my flight is delayed.">Rebook</button>
-          <button type="button" data-msg="I need a refund for booking AB12CD.">Refund</button>
-          <button type="button" data-msg="My bag is missing. Claim number AB1234568.">Baggage</button>
-          <button type="button" data-msg="I need wheelchair assistance for my flight.">Accessibility</button>
+          <button type="button" data-msg="What can you help me with?">What can you help with?</button>
+          <button type="button" data-msg="I need a status update.">Status update</button>
+          <button type="button" data-msg="I have a billing or charge issue.">Billing issue</button>
+          <button type="button" data-msg="I need to upload a document or photo for support.">Upload support docs</button>
+          <button type="button" data-msg="I need help with an accessibility request.">Accessibility</button>
           <button type="button" data-msg="I want a human agent now.">Human support</button>
         </div>
 
@@ -62,7 +63,7 @@
             <div id="transcript" class="transcript" aria-live="polite" aria-label="Conversation transcript"></div>
 
             <div class="composer">
-              <textarea id="composerInput" rows="2" placeholder="Ask about flight status, disruption, booking changes, refunds, baggage, accessibility, or a charge issue..."></textarea>
+              <textarea id="composerInput" rows="2" placeholder="Ask a question and I’ll help with the fastest next step..."></textarea>
               <div class="composer-actions">
                 <div class="handoff-actions">
                   <input id="uploadInput" type="file" class="hidden-file-input" accept="image/*,.pdf,.txt" />
@@ -102,10 +103,19 @@
                         <ul id="planNeed"></ul>
                       </div>
                       <div class="plan-item full">
-                        <label>Trip details already captured</label>
+                        <label id="planContextLabel">Trip details already captured</label>
                         <div id="planContext" class="chip-row"></div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel collapse">
+                <button id="promiseToggle" class="panel-toggle" type="button" aria-expanded="false">What I’m tracking for you</button>
+                <div id="promiseBody" class="panel-body hidden">
+                  <div id="promiseList" class="promise-list">
+                    <div class="muted">As we talk, I’ll track what I’ve committed to do next and what is already prepared for you.</div>
                   </div>
                 </div>
               </section>
@@ -176,6 +186,6 @@
     </main>
   </div>
 
-  <script src="/static/customer_support.js?v=20260226f"></script>
+  <script src="/static/customer_support.js?v=20260226i"></script>
 </body>
 </html>

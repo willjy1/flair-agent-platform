@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Support Demo Directory</title>
+  <link rel="stylesheet" href="/static/demo_directory.css?v=20260226a" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Customer Support Demo Directory</p>
+        <h1>Open and share every tenant demo from one page.</h1>
+        <p class="sub">
+          This page is only for organizing demos. Each tenant page remains customer-facing and does not reference the others.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="copyAllBtn" type="button" class="btn btn-primary">Copy All Links</button>
+        <a id="linksTxt" class="btn btn-secondary" href="/demos/links.txt" target="_blank" rel="noreferrer">Open Links (.txt)</a>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <input id="searchInput" type="search" placeholder="Filter by company or vertical..." />
+      <div id="statusText" class="status">Loading demos...</div>
+    </section>
+
+    <section id="groups" class="groups" aria-live="polite"></section>
+  </main>
+
+  <template id="cardTemplate">
+    <article class="demo-card">
+      <div class="card-top">
+        <div class="mark" aria-hidden="true"></div>
+        <div class="title-wrap">
+          <h3 class="title"></h3>
+          <p class="meta"></p>
+        </div>
+      </div>
+      <p class="tagline"></p>
+      <div class="path"></div>
+      <div class="actions">
+        <a class="btn btn-primary open-link" target="_blank" rel="noreferrer">Open Demo</a>
+        <button type="button" class="btn btn-secondary copy-link">Copy Link</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="/static/demo_directory.js?v=20260226a"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "slug": "geico",
+  "display_name": "GEICO Support Agents",
+  "vertical": "insurance",
+  "category": "auto_insurance",
+  "locale": "en-US",
+  "support_experience_name": "GEICO Support",
+  "customer_capabilities": [
+    "claim status and claims follow-up guidance",
+    "billing and payment issue triage",
+    "roadside and accident-support preparation",
+    "document upload intake for claims and billing",
+    "human handoff with context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Move to the correct GEICO claims or service path quickly.",
+    "Use official GEICO support and claims pages for self-service and escalation."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "contact", "claims"],
+    "BAGGAGE": ["claims", "contact"],
+    "DELAY_INFO": ["claims", "contact"],
+    "IRROPS": ["claims", "contact", "digital_self_service"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "claims", "billing_payments", "digital_self_service"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "claims", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "GEICO Contact Us", "url": "https://www.geico.com/contact-us/", "description": "Official GEICO contact and customer support channels." },
+      { "label": "GEICO Claims", "url": "https://www.geico.com/claims/", "description": "Official GEICO claims center and support." },
+      { "label": "GEICO Phone Directory", "url": "https://www.geico.com/contact-us/phone/", "description": "Official GEICO phone support numbers by issue type." }
+    ],
+    "REFUND": [
+      { "label": "GEICO Contact Us", "url": "https://www.geico.com/contact-us/", "description": "Official support channels for billing and account issues." },
+      { "label": "GEICO Claims", "url": "https://www.geico.com/claims/", "description": "Official claims support." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "GEICO",
+    "contact_page_url": "https://www.geico.com/contact-us/",
+    "help_center_url": "https://www.geico.com/claims/",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "G",
+    "hero_title": "Get GEICO support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with claims, billing issues, roadside support, and escalations without repeating yourself.",
+    "resource_panel_title": "Official GEICO support links",
+    "brand_theme": {
+      "accent": "#004a8d",
+      "accent_2": "#0066bf",
+      "surface_tint": "#f3f8fe",
+      "brand_dark": "#0a2038"
+    }
+  }
+}

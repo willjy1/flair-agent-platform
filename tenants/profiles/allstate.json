@@ -1,0 +1,59 @@
+{
+  "slug": "allstate",
+  "display_name": "Allstate Support Agents",
+  "vertical": "insurance",
+  "category": "multi_line_insurance",
+  "locale": "en-US",
+  "support_experience_name": "Allstate Support",
+  "customer_capabilities": [
+    "claim status and claims support guidance",
+    "billing and payment issue triage",
+    "policy service request preparation",
+    "document upload intake for claims and billing issues",
+    "human handoff with context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Guide customers to the correct claim, billing, or service path quickly.",
+    "Use official Allstate support pages and contact channels."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "contact", "claims"],
+    "BAGGAGE": ["claims", "contact"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "claims", "billing_payments", "digital_self_service"],
+    "COMPENSATION_CLAIM": ["claims", "contact"],
+    "BOOKING_CHANGE": ["digital_self_service", "contact"],
+    "CANCELLATION": ["digital_self_service", "contact"]
+  },
+  "official_channel_topics": ["contact", "claims", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Allstate Contact Support", "url": "https://www.allstate.com/contact-support", "description": "Official Allstate support contact and self-service entry points." },
+      { "label": "Allstate Claims", "url": "https://www.allstate.com/claims", "description": "Official Allstate claims page and support." },
+      { "label": "Allstate Call Center Contact", "url": "https://www.allstate.com/help-support/contact/call-center", "description": "Official Allstate call center contact information." }
+    ],
+    "REFUND": [
+      { "label": "Allstate Contact Support", "url": "https://www.allstate.com/contact-support", "description": "Official Allstate support and billing contacts." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Allstate",
+    "contact_page_url": "https://www.allstate.com/contact-support",
+    "help_center_url": "https://www.allstate.com/help-support/contact/call-center",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "A",
+    "hero_title": "Get Allstate support in one conversation.",
+    "hero_subtitle": "Text or voice. Get clear next steps for claims, billing, policy service, and human support without starting over.",
+    "resource_panel_title": "Official Allstate support links",
+    "brand_theme": {
+      "accent": "#003da5",
+      "accent_2": "#005ecb",
+      "surface_tint": "#f3f7ff",
+      "brand_dark": "#0b2145"
+    }
+  }
+}

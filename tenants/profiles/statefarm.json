@@ -1,0 +1,57 @@
+{
+  "slug": "statefarm",
+  "display_name": "State Farm Support Agents",
+  "vertical": "insurance",
+  "category": "multi_line_insurance",
+  "locale": "en-US",
+  "support_experience_name": "State Farm Support",
+  "customer_capabilities": [
+    "claim status and claims support guidance",
+    "billing and payment issue triage",
+    "roadside assistance preparation and escalation",
+    "document upload intake for claims and billing issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Guide customers to the fastest claims, billing, or roadside path.",
+    "Prepare a clear handoff summary when a human agent is needed."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "claims", "billing_payments", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "claims", "billing_payments", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "State Farm Customer Care", "url": "https://www.statefarm.com/customer-care/welcome/existing-customers", "description": "Official State Farm customer care page for existing customers." },
+      { "label": "State Farm Contact / Customer Care", "url": "https://www.statefarm.com/customer-care/manage-your-accounts/insurance-payment-plans/understanding-your-insurance-bill", "description": "Official State Farm customer care contact page with claims, billing, and roadside numbers." },
+      { "label": "State Farm FAQs", "url": "https://www.statefarm.com/customer-care/faqs/insurance", "description": "Official State Farm insurance servicing FAQs." }
+    ],
+    "REFUND": [
+      { "label": "State Farm Customer Care", "url": "https://www.statefarm.com/customer-care/manage-your-accounts/insurance-payment-plans/understanding-your-insurance-bill", "description": "Official State Farm billing and payment support guidance." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "State Farm",
+    "contact_page_url": "https://www.statefarm.com/customer-care/manage-your-accounts/insurance-payment-plans/understanding-your-insurance-bill",
+    "help_center_url": "https://www.statefarm.com/customer-care/faqs/insurance",
+    "roadside_phone": "877-627-5757",
+    "wait_time_disclaimer": "Customer Care availability and wait times may vary.",
+    "brand_mark": "SF",
+    "hero_title": "Get State Farm support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with claims, billing, roadside support, and policy service issues without starting over.",
+    "resource_panel_title": "Official State Farm support links",
+    "brand_theme": {
+      "accent": "#e1261c",
+      "accent_2": "#b91c1c",
+      "surface_tint": "#fff4f4",
+      "brand_dark": "#3a1212"
+    }
+  }
+}

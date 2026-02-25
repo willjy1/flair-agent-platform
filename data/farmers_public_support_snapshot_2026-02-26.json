@@ -1,0 +1,64 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Farmers",
+  "entries": [
+    {
+      "id": "farmers-contact-us",
+      "topic": "contact",
+      "tags": ["contact", "customer_service", "support"],
+      "text": "Farmers' official Contact Us page provides customer care, claims, and billing contact entry points.",
+      "source_url": "https://www.farmers.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "farmers-claims",
+      "topic": "claims",
+      "tags": ["claims", "report_claim", "claim_support"],
+      "text": "Farmers has dedicated official claims pages and claim-reporting flows separate from general support pages.",
+      "source_url": "https://www.farmers.com/claims/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "farmers-faq",
+      "topic": "digital_self_service",
+      "tags": ["faq", "self_service", "support"],
+      "text": "Farmers provides a separate FAQ/help experience for common support and insurance questions.",
+      "source_url": "https://www.farmers.com/faq/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "farmers-billing-payments",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "customer_care", "routing"],
+      "text": "Billing and payment questions are generally routed through contact pages and support resources, requiring customers to choose the right path early.",
+      "source_url": "https://www.farmers.com/contact-us/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "pnc-claims-digital-gap-jdpower-farmers-context",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "claims_digital", "channel_switching", "claims_updates"],
+      "text": "JD Power's 2025 U.S. Claims Digital Experience Study shows continued gaps in proactive claims updates and cross-channel continuity across the P&C industry.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-claims-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-11-17"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official contact page covering multiple support paths",
+      "Dedicated claims experience",
+      "Separate FAQ/help resources"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Claims, billing, and general support remain split across separate surfaces",
+      "No public evidence of one conversational thread with context continuity across channels",
+      "No public customer-visible issue tracker spanning support and claims interactions",
+      "No public support-orchestration layer for claims, billing, and roadside support"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "slug": "aetna",
+  "display_name": "Aetna Support Agents",
+  "vertical": "health",
+  "category": "health_plan",
+  "locale": "en-US",
+  "support_experience_name": "Aetna Member Support",
+  "customer_capabilities": [
+    "medical claim status follow-up guidance",
+    "prior authorization status and follow-up guidance",
+    "benefits and coverage question preparation",
+    "member ID card and provider directory guidance",
+    "billing and premium issue triage",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so members do not repeat details.",
+    "Guide members to the fastest official member-support path.",
+    "Prepare a clear support handoff summary when needed."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "member_support", "claims", "prior_authorization", "provider_directory", "digital_self_service"],
+    "COMPENSATION_CLAIM": ["claims", "contact"],
+    "DELAY_INFO": ["claims", "prior_authorization", "contact"],
+    "IRROPS": ["claims", "prior_authorization", "contact"]
+  },
+  "official_channel_topics": ["contact", "member_support", "claims", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Aetna Contact Us", "url": "https://www.aetna.com/individuals-families/member-rights-resources/need-to-contact-us.html", "description": "Official Aetna contact guidance and member support channels." },
+      { "label": "Aetna Member Resources", "url": "https://www.aetna.com/individuals-families/member-rights-resources.html", "description": "Official Aetna member support and resource pages." },
+      { "label": "Aetna Member Login", "url": "https://member.aetna.com/", "description": "Official Aetna member portal sign-in." }
+    ],
+    "REFUND": [
+      { "label": "Aetna Contact Us", "url": "https://www.aetna.com/individuals-families/member-rights-resources/need-to-contact-us.html", "description": "Official billing and claims support contacts." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Aetna",
+    "contact_page_url": "https://www.aetna.com/individuals-families/member-rights-resources/need-to-contact-us.html",
+    "help_center_url": "https://www.aetna.com/individuals-families/member-rights-resources.html",
+    "wait_time_disclaimer": "Member support availability and wait times may vary.",
+    "brand_mark": "Ae",
+    "hero_title": "Get health plan support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with claims, prior authorization, benefits questions, provider search, and member support without starting over.",
+    "resource_panel_title": "Official Aetna support links",
+    "brand_theme": {
+      "accent": "#6f2dbd",
+      "accent_2": "#4e1e88",
+      "surface_tint": "#faf5ff",
+      "brand_dark": "#231137"
+    }
+  }
+}

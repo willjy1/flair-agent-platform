@@ -1,0 +1,56 @@
+{
+  "slug": "libertymutual",
+  "display_name": "Liberty Mutual Support Agents",
+  "vertical": "insurance",
+  "category": "multi_line_insurance",
+  "locale": "en-US",
+  "support_experience_name": "Liberty Mutual Support",
+  "customer_capabilities": [
+    "claim status and claims support guidance",
+    "billing and payment issue triage",
+    "document upload intake for claims and billing issues",
+    "roadside assistance preparation and escalation",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Guide customers to the right claims or customer support path quickly.",
+    "Prepare clear handoff summaries and next steps."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "claims", "billing_payments", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "claims", "billing_payments", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Liberty Mutual Contact Us", "url": "https://www.libertymutualgroup.com/about-lm/corporate-information/contact-us", "description": "Official Liberty Mutual contact information including customer service and claims support references." },
+      { "label": "Liberty Mutual Claims Support", "url": "https://www.libertymutual.com/customer-support/claims-support", "description": "Official Liberty Mutual claims support page." },
+      { "label": "Liberty Mutual Customer Support", "url": "https://www.libertymutual.com/customer-support", "description": "Official Liberty Mutual customer support hub." }
+    ],
+    "REFUND": [
+      { "label": "Liberty Mutual Customer Support", "url": "https://www.libertymutual.com/customer-support", "description": "Official Liberty Mutual support and billing/contact paths." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Liberty Mutual",
+    "contact_page_url": "https://www.libertymutualgroup.com/about-lm/corporate-information/contact-us",
+    "help_center_url": "https://www.libertymutual.com/customer-support",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "LM",
+    "hero_title": "Get Liberty Mutual support in one conversation.",
+    "hero_subtitle": "Text or voice. Get clear next steps for claims, billing, roadside support, and policy service issues.",
+    "resource_panel_title": "Official Liberty Mutual support links",
+    "brand_theme": {
+      "accent": "#1f6feb",
+      "accent_2": "#154c9c",
+      "surface_tint": "#f3f8ff",
+      "brand_dark": "#11233b"
+    }
+  }
+}

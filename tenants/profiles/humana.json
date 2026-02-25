@@ -1,0 +1,56 @@
+{
+  "slug": "humana",
+  "display_name": "Humana Support Agents",
+  "vertical": "health",
+  "category": "health_plan",
+  "locale": "en-US",
+  "support_experience_name": "Humana Member Support",
+  "customer_capabilities": [
+    "claim status and claim follow-up guidance",
+    "prior authorization and coverage question preparation",
+    "member ID card and provider search guidance",
+    "billing and premium issue triage",
+    "human handoff with context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so members do not repeat details.",
+    "Guide members to the right Humana support path quickly.",
+    "Prepare clear summaries for follow-up and handoff."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "member_support", "claims", "provider_directory", "digital_self_service"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "member_support", "claims", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Humana Contact Us", "url": "https://www.humana.com/contact-us", "description": "Official Humana contact and support pages." },
+      { "label": "Humana Members", "url": "https://www.humana.com/member", "description": "Official Humana member support and portal entry point." },
+      { "label": "Humana Claims and Coverage (Member)", "url": "https://www.humana.com/member", "description": "Official member portal path for claims and plan details." }
+    ],
+    "REFUND": [
+      { "label": "Humana Contact Us", "url": "https://www.humana.com/contact-us", "description": "Official Humana support contact options." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Humana",
+    "contact_page_url": "https://www.humana.com/contact-us",
+    "help_center_url": "https://www.humana.com/member",
+    "wait_time_disclaimer": "Member support availability and wait times may vary.",
+    "brand_mark": "H",
+    "hero_title": "Get Humana member support in one conversation.",
+    "hero_subtitle": "Text or voice. Get clear next steps for claims, benefits questions, prior authorization, provider search, and member support.",
+    "resource_panel_title": "Official Humana support links",
+    "brand_theme": {
+      "accent": "#78be20",
+      "accent_2": "#3c8d0d",
+      "surface_tint": "#f4fbeb",
+      "brand_dark": "#18310d"
+    }
+  }
+}

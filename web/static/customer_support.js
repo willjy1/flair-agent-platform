@@ -10,6 +10,7 @@
     voiceHint: document.getElementById("voiceHint"),
     voiceBackendHint: document.getElementById("voiceBackendHint"),
     statusLine: document.getElementById("statusLine"),
+    effortBadge: document.getElementById("effortBadge"),
     quickActions: document.getElementById("quickActions"),
     capabilityList: document.getElementById("capabilityList"),
     commitmentList: document.getElementById("commitmentList"),
@@ -39,6 +40,9 @@
     planCanDo: document.getElementById("planCanDo"),
     planNeed: document.getElementById("planNeed"),
     planContext: document.getElementById("planContext"),
+    promiseToggle: document.getElementById("promiseToggle"),
+    promiseBody: document.getElementById("promiseBody"),
+    promiseList: document.getElementById("promiseList"),
     resourcesToggle: document.getElementById("resourcesToggle"),
     resourcesBody: document.getElementById("resourcesBody"),
     alertsToggle: document.getElementById("alertsToggle"),
@@ -76,10 +80,13 @@
     lastResponse: null,
     lastAlerts: [],
     trackerData: null,
+    promiseLedger: [],
+    customerEffort: null,
     voiceRetries: 0,
     pendingTranscript: null,
     voiceBackend: { stt: "unknown", tts: "browser" },
     brand: { name: "Support", callCenterPhone: null },
+    uiStrings: {},
   };
 
   const nextActionPrompts = {
@@ -98,7 +105,72 @@
     check_rebooking_options: "Check rebooking options now.",
     contact_bank_if_fraud: "I contacted my bank. What should I do next?",
     share_booking_or_transaction_details: "The booking reference is AB12CD.",
+    upload_supporting_documents: "I want to upload supporting documents.",
+    share_claim_number: "My claim number is CLM-123456.",
+    provide_member_id: "My member ID is shown on my card. What else do you need?",
+    provide_policy_number: "My policy number is available. What details do you need?",
+    provide_account_number: "My account number is available. What details do you need?",
+    provide_service_address: "The service address is available. What details do you need?",
+    provide_order_number: "My order number is available. What details do you need?",
+    provide_prior_authorization_reference: "The prior authorization reference is available.",
+    provider_directory_search: "Help me find an in-network provider.",
+    explain_coverage_review: "Help me prepare a coverage question.",
+    report_outage: "I need to report an outage.",
+    share_tracking_number: "My tracking number is available.",
   };
+
+  function userFacingErrorMessage(context) {
+    const brand = state.brand?.name || "support";
+    const phone = state.brand?.callCenterPhone;
+    const urgentLine = phone ? ` If this is urgent, you can call ${brand} at ${phone} (wait times may vary).` : "";
+    switch (context) {
+      case "send":
+        return `I couldn't process that request right now. Please try again in a moment.${urgentLine}`;
+      case "summary":
+        return "I couldn't prepare a summary right now. Please try again in a moment.";
+      case "upload":
+        return "I couldn't analyze that upload right now. You can still type the key details.";
+      case "voice_transcription":
+        return "I couldn't transcribe that audio clearly. Please try again, or type your question.";
+      case "voice_input":
+        return "Voice input is not available right now. You can type your question instead.";
+      case "tracker":
+        return state.uiStrings.tracker_error_text || "I couldn't load your updates right now. Try Refresh.";
+      default:
+        return "Something went wrong. Please try again.";
+    }
+  }
+
+  function mapSpeechErrorToMessage(code) {
+    const normalized = String(code || "").toLowerCase();
+    if (normalized === "not-allowed" || normalized === "service-not-allowed") {
+      return "Microphone permission is blocked. Allow microphone access and try again.";
+    }
+    if (normalized === "no-speech") {
+      return "I did not hear speech clearly. Please try again and speak a little closer to the microphone.";
+    }
+    if (normalized === "audio-capture") {
+      return "Your microphone is not available right now. Check your device input and try again.";
+    }
+    if (normalized === "network") {
+      return "Voice input had a connection problem. Please try again or type your question.";
+    }
+    return userFacingErrorMessage("voice_input");
+  }
+
+  function setInitialGreetingMessage(text) {
+    if (!els.transcript) return;
+    const firstAgent = els.transcript.querySelector(".msg.agent");
+    const hasUser = els.transcript.querySelector(".msg.user");
+    if (!firstAgent || hasUser) return;
+    const firstTextNode = Array.from(firstAgent.childNodes).find((n) => n.nodeType === Node.TEXT_NODE);
+    if (firstTextNode) {
+      firstTextNode.nodeValue = text;
+    } else {
+      firstAgent.textContent = text;
+    }
+    scrollTranscript();
+  }
 
   function detectTenantFromPath() {
     const parts = (window.location.pathname || "/").split("/").filter(Boolean);
@@ -288,6 +360,28 @@
     if (vars.brand_dark) root.style.setProperty("--brand-dark", String(vars.brand_dark));
     const brandMark = document.querySelector(".brand-mark");
     if (brandMark && branding.brand_mark) brandMark.textContent = String(branding.brand_mark).slice(0, 2);
+    if (document.body && capData?.vertical) document.body.dataset.vertical = String(capData.vertical);
+    if (document.body && capData?.tenant) document.body.dataset.tenant = String(capData.tenant);
+  }
+
+  function applyUiStrings(uiStrings) {
+    state.uiStrings = uiStrings && typeof uiStrings === "object" ? uiStrings : {};
+    if (els.brandSub && state.uiStrings.brand_subtitle) {
+      els.brandSub.textContent = state.uiStrings.brand_subtitle;
+    }
+    if (els.input && state.uiStrings.composer_placeholder) {
+      els.input.placeholder = state.uiStrings.composer_placeholder;
+    }
+    if (els.alertsToggle && state.uiStrings.alerts_panel_title) {
+      els.alertsToggle.textContent = state.uiStrings.alerts_panel_title;
+    }
+    if (els.resolutionToggle && state.uiStrings.resolution_panel_title) {
+      els.resolutionToggle.textContent = state.uiStrings.resolution_panel_title;
+    }
+    const planContextLabel = document.getElementById("planContextLabel");
+    if (planContextLabel && state.uiStrings.plan_context_label) {
+      planContextLabel.textContent = state.uiStrings.plan_context_label;
+    }
   }
 
   function renderResolutionArtifacts(artifacts) {
@@ -295,7 +389,8 @@
     els.resolutionList.innerHTML = "";
     const a = artifacts && typeof artifacts === "object" ? artifacts : null;
     if (!a || !Object.keys(a).length) {
-      els.resolutionList.innerHTML = '<div class="muted">Live status, rebooking options, refund estimates, and other actionable details appear here when available.</div>';
+      const emptyText = state.uiStrings.resolution_empty_text || "Status checks, options, estimates, and other actionable details appear here when available.";
+      els.resolutionList.innerHTML = `<div class="muted">${emptyText}</div>`;
       return;
     }
 
@@ -335,6 +430,34 @@
         wrap.appendChild(row);
       });
       addCard("Rebooking options", wrap, "actionable");
+    }
+
+    if (a.workflow_artifact) {
+      const wf = a.workflow_artifact;
+      const body = document.createElement("div");
+      body.className = "artifact-body";
+      if (wf.summary) {
+        const summary = document.createElement("div");
+        summary.textContent = String(wf.summary);
+        body.appendChild(summary);
+      }
+      if (Array.isArray(wf.required_details) && wf.required_details.length) {
+        const req = document.createElement("ul");
+        req.className = "artifact-list-bullets";
+        wf.required_details.slice(0, 4).forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = String(item);
+          req.appendChild(li);
+        });
+        body.appendChild(req);
+      }
+      if (Array.isArray(wf.next_steps) && wf.next_steps.length) {
+        const next = document.createElement("div");
+        next.className = "artifact-body";
+        next.innerHTML = `<strong>What I can do now:</strong> ${wf.next_steps.slice(0, 3).join("; ")}`;
+        body.appendChild(next);
+      }
+      addCard(wf.title || "Workflow guidance", body, "info");
     }
 
     if (a.compensation_estimate) {
@@ -388,7 +511,8 @@
     if (!els.alertsList) return;
     els.alertsList.innerHTML = "";
     if (!Array.isArray(alerts) || !alerts.length) {
-      els.alertsList.innerHTML = '<div class="muted">No active trip alerts in this conversation yet. Ask about a flight or booking to enable proactive recovery suggestions.</div>';
+      const emptyText = state.uiStrings.alerts_empty_text || "No active alerts in this conversation yet.";
+      els.alertsList.innerHTML = `<div class="muted">${emptyText}</div>`;
       return;
     }
     alerts.forEach((alert) => {
@@ -424,6 +548,7 @@
     if (!plan || typeof plan !== "object") {
       els.planEmpty.classList.remove("hidden");
       els.planBody.classList.add("hidden");
+      applyEffortBadge(null);
       return;
     }
     els.planEmpty.classList.add("hidden");
@@ -450,7 +575,7 @@
     if (!ctxItems.length) {
       const chip = document.createElement("span");
       chip.className = "chip info";
-      chip.textContent = "No trip details captured yet";
+      chip.textContent = state.uiStrings.plan_context_empty_label || "No key details captured yet";
       els.planContext.appendChild(chip);
     } else {
       ctxItems.forEach((item) => {
@@ -460,6 +585,92 @@
         els.planContext.appendChild(chip);
       });
     }
+    applyEffortBadge(plan.customer_effort || state.customerEffort || null);
+  }
+
+  function applyEffortBadge(effort) {
+    if (!els.effortBadge) return;
+    const e = effort && typeof effort === "object" ? effort : null;
+    if (!e || !e.level || String(e.level).toLowerCase() === "low") {
+      els.effortBadge.classList.add("hidden");
+      els.effortBadge.classList.remove("fast", "warn");
+      els.effortBadge.textContent = "";
+      return;
+    }
+    const fast = Boolean(e.fast_path_active);
+    els.effortBadge.classList.remove("hidden");
+    els.effortBadge.classList.toggle("fast", fast);
+    els.effortBadge.classList.toggle("warn", !fast);
+    els.effortBadge.textContent = fast
+      ? "Fast path active: shorter, lower-effort support"
+      : "Keeping this efficient";
+  }
+
+  function renderPromiseLedger(items, effort) {
+    if (!els.promiseList) return;
+    els.promiseList.innerHTML = "";
+    applyEffortBadge(effort || state.customerEffort || null);
+    const list = Array.isArray(items) ? items : [];
+    if (!list.length) {
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.textContent = "As we talk, I’ll track what I’ve committed to do next and what is already prepared for you.";
+      els.promiseList.appendChild(empty);
+      return;
+    }
+    list.slice(0, 6).forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "promise-item";
+
+      const top = document.createElement("div");
+      top.className = "promise-top";
+
+      const title = document.createElement("div");
+      title.className = "promise-title";
+      title.textContent = item.title || "Support commitment";
+
+      const status = document.createElement("span");
+      const statusValue = String(item.status || "active").toLowerCase();
+      status.className = `promise-status ${statusValue}`;
+      status.textContent = (
+        {
+          active: "Active",
+          review: "Review",
+          done: "Done",
+        }[statusValue] || "Active"
+      );
+
+      const summary = document.createElement("div");
+      summary.className = "promise-summary";
+      summary.textContent = item.summary || "";
+
+      const meta = document.createElement("div");
+      meta.className = "promise-meta";
+      const due = formatPromiseDue(item);
+      meta.textContent = due || "";
+
+      top.appendChild(title);
+      top.appendChild(status);
+      card.appendChild(top);
+      card.appendChild(summary);
+      if (meta.textContent) card.appendChild(meta);
+      els.promiseList.appendChild(card);
+    });
+  }
+
+  function formatPromiseDue(item) {
+    if (!item || typeof item !== "object") return "";
+    const dueAt = item.due_at ? new Date(item.due_at) : null;
+    if (!dueAt || Number.isNaN(dueAt.getTime())) return "";
+    const now = new Date();
+    const ms = dueAt.getTime() - now.getTime();
+    const absHours = Math.round(Math.abs(ms) / (1000 * 60 * 60));
+    if (String(item.status || "").toLowerCase() === "overdue") {
+      return absHours <= 1 ? "Follow-up may be overdue (about an hour)." : `Follow-up may be overdue (${absHours}h).`;
+    }
+    if (ms <= 0) return "Follow-up window reached.";
+    if (absHours < 1) return "Follow-up window later today.";
+    return `Follow-up window in ~${absHours}h.`;
   }
 
   function stopPlayback() {
@@ -542,7 +753,18 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+    if (!resp.ok) {
+      let fallbackMessage = userFacingErrorMessage("send");
+      try {
+        const maybe = await resp.json();
+        if (maybe && typeof maybe.message === "string" && maybe.message.trim()) {
+          fallbackMessage = maybe.message.trim();
+        }
+      } catch (_) {
+        // ignore parse issues; keep customer-facing fallback
+      }
+      throw new Error(fallbackMessage);
+    }
     return await resp.json();
   }
 
@@ -560,14 +782,18 @@
     try {
       const data = await callCustomerMessageAPI(content, channelOverride);
       state.lastResponse = data;
+      state.promiseLedger = Array.isArray(data.promise_ledger) ? data.promise_ledger : state.promiseLedger;
+      state.customerEffort = data.customer_effort || state.customerEffort;
       removeTypingIndicator();
       appendMessage("agent", data.message || data.response_text || "I can help with that.", data);
       renderCustomerPlan(data.customer_plan || null);
+      renderPromiseLedger(state.promiseLedger, state.customerEffort);
       renderResolutionArtifacts(data.resolution_artifacts || {});
       if (data.follow_up_summary?.summary && data.support_reference) {
         addSystemNote("Summary and next steps are saved for this request.");
       }
       refreshTracker();
+      refreshCommitments();
       refreshAlerts();
       setStatus("Connected.");
       if (state.mode === "voice") {
@@ -577,7 +803,7 @@
       }
     } catch (err) {
       removeTypingIndicator();
-      appendMessage("agent", `Sorry, I ran into a problem while sending your request. ${String(err)}`);
+      appendMessage("agent", err?.message || userFacingErrorMessage("send"));
       setStatus("Unable to send right now.");
     } finally {
       state.sending = false;
@@ -599,7 +825,7 @@
           tenant: state.tenant,
         }),
       });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      if (!resp.ok) throw new Error(userFacingErrorMessage("send"));
       const data = await resp.json();
       addSystemNote(data.customer_message || `Prepared continuation to ${toChannel}.`);
       if (toChannel === "phone" && data.phone_number) {
@@ -622,7 +848,8 @@
         setStatus("SMS continuation unavailable.");
         return;
       }
-      addSystemNote(`Could not prepare ${toChannel} continuation. ${String(err)}`);
+      addSystemNote(`I couldn't prepare ${toChannel} continuation right now. Please try again in a moment.`);
+      setStatus(`${toChannel === "phone" ? "Phone" : "SMS"} continuation unavailable.`);
     }
   }
 
@@ -645,18 +872,19 @@
     }
     state.sessionId = newSessionId();
     state.lastResponse = null;
+    state.promiseLedger = [];
+    state.customerEffort = null;
     els.transcript.innerHTML = "";
-    appendMessage(
-      "agent",
-      `New conversation started. I can help with flight status and disruptions, rebooking, cancellations, refunds, baggage issues, accessibility support, and human support handoff for ${state.brand?.name || "your trip"}.`
-    );
+    appendMessage("agent", state.uiStrings.reset_greeting || `New conversation started. I can help with support issues for ${state.brand?.name || "your account"}.`);
     renderCustomerPlan(null);
+    renderPromiseLedger([], null);
     renderResolutionArtifacts({});
     renderAlerts([]);
     els.input.value = "";
     setStatus("Connected.");
     addSystemNote("Started a new request.");
     refreshTracker();
+    refreshCommitments();
     refreshAlerts();
     renderTechnical();
   }
@@ -675,7 +903,7 @@
         }),
       });
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || data.error || "summary_failed");
+      if (!resp.ok) throw new Error(userFacingErrorMessage("summary"));
       if (!data.ok) {
         addSystemNote(data.message || "Ask a question first, then I can prepare a summary.");
         setStatus("Summary unavailable yet.");
@@ -684,7 +912,7 @@
       addSystemNote("Summary prepared. You can continue by SMS or keep going here.");
       refreshTracker();
     } catch (err) {
-      addSystemNote(`Could not prepare summary right now. ${String(err)}`);
+      addSystemNote(err?.message || userFacingErrorMessage("summary"));
     }
   }
 
@@ -692,13 +920,30 @@
     if (!els.trackerList) return;
     try {
       const resp = await fetch(`/api/v1/customer/references?tenant=${encodeURIComponent(state.tenant)}&customer_id=${encodeURIComponent(state.customerId)}`);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      if (!resp.ok) throw new Error(userFacingErrorMessage("tracker"));
       const data = await resp.json();
       state.trackerData = data;
       renderTracker(data.references || []);
     } catch (err) {
       if (!state.trackerData) {
-        els.trackerList.innerHTML = '<div class="muted">Could not load support references.</div>';
+        els.trackerList.innerHTML = `<div class="muted">${state.uiStrings.tracker_error_text || "I couldn't load your updates right now. Try Refresh."}</div>`;
+      }
+    }
+  }
+
+  async function refreshCommitments() {
+    if (!els.promiseList) return;
+    try {
+      const url = `/api/v1/customer/commitments?tenant=${encodeURIComponent(state.tenant)}&session_id=${encodeURIComponent(state.sessionId)}&customer_id=${encodeURIComponent(state.customerId)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(userFacingErrorMessage("tracker"));
+      const data = await resp.json();
+      state.promiseLedger = Array.isArray(data.commitments) ? data.commitments : [];
+      state.customerEffort = data.customer_effort || state.customerEffort;
+      renderPromiseLedger(state.promiseLedger, state.customerEffort);
+    } catch (_) {
+      if (!state.promiseLedger?.length) {
+        renderPromiseLedger([], state.customerEffort);
       }
     }
   }
@@ -707,7 +952,7 @@
     if (!els.trackerList) return;
     els.trackerList.innerHTML = "";
     if (!Array.isArray(references) || !references.length) {
-      els.trackerList.innerHTML = '<div class="muted">Your active support references will appear here.</div>';
+      els.trackerList.innerHTML = `<div class="muted">${state.uiStrings.tracker_empty_text || "Your requests and updates will appear here."}</div>`;
       return;
     }
     references.slice(0, 8).forEach((ref) => {
@@ -783,7 +1028,7 @@
         }),
       });
       const data = await resp.json();
-      if (!resp.ok || !data.ok) throw new Error(data.detail || data.error || "upload_analyze_failed");
+      if (!resp.ok || !data.ok) throw new Error(userFacingErrorMessage("upload"));
       const extracted = data.entities || {};
       const extractedKeys = Object.keys(extracted);
       addSystemNote(
@@ -802,7 +1047,7 @@
         els.voiceBackendHint.textContent = `Upload notes: ${data.warnings.slice(0, 2).join(", ")}`;
       }
     } catch (err) {
-      addSystemNote(`Upload analysis failed. ${String(err)}`);
+      addSystemNote(err?.message || userFacingErrorMessage("upload"));
       setStatus("Upload analysis failed.");
     } finally {
       if (els.uploadInput) els.uploadInput.value = "";
@@ -821,6 +1066,10 @@
       state.lastHealth = healthData;
       if (capData) {
         applyBranding(capData);
+        applyUiStrings(capData.ui_strings || {});
+        if (state.uiStrings.initial_greeting) {
+          setInitialGreetingMessage(state.uiStrings.initial_greeting);
+        }
         els.capabilityList.innerHTML = "";
         (capData.what_it_can_help_with || []).forEach((item) => {
           const li = document.createElement("li");
@@ -872,6 +1121,7 @@
           : "Browser transcription fallback.";
       }
       renderTechnical();
+      renderPromiseLedger(state.promiseLedger, state.customerEffort);
     } catch (_) {
       els.voiceBackendHint.textContent = "Local support service is available, but capability details could not be loaded.";
       renderTechnical();
@@ -1007,7 +1257,7 @@
       });
       const data = await resp.json();
       if (!resp.ok || !data.ok) {
-        throw new Error(data.message || data.detail || data.error || "transcription_failed");
+        throw new Error(data.message || userFacingErrorMessage("voice_transcription"));
       }
       state.voiceBackend.stt = data.provider || "server";
       state.pendingTranscript = data.text || "";
@@ -1035,7 +1285,7 @@
       state.voiceRetries = 0;
       await sendCustomerMessage(data.text, "voice");
     } catch (err) {
-      addSystemNote(`Voice transcription failed. ${String(err)}`);
+      addSystemNote(err?.message || userFacingErrorMessage("voice_transcription"));
       els.voiceHint.textContent = "Voice transcription failed. You can type your question instead.";
       setStatus("Voice transcription failed.");
     }
@@ -1064,7 +1314,7 @@
     };
     rec.onerror = (event) => {
       const code = event.error || "unknown";
-      addSystemNote(`Voice input error (${code}). You can type your question instead.`);
+      addSystemNote(mapSpeechErrorToMessage(code));
       els.voiceHint.textContent = "Voice input failed. You can type instead.";
     };
     rec.onend = () => {
@@ -1084,7 +1334,7 @@
     try {
       state.recognition.start();
     } catch (_) {
-      addSystemNote("Voice input could not start. Please try again or type your question.");
+      addSystemNote(userFacingErrorMessage("voice_input"));
     }
   }
 
@@ -1097,6 +1347,19 @@
   }
 
   function renderTechnical() {
+    const safeLastResponse = state.lastResponse && typeof state.lastResponse === "object"
+      ? {
+          session_id: state.lastResponse.session_id,
+          tenant: state.lastResponse.tenant,
+          channel: state.lastResponse.channel,
+          mode: state.lastResponse.mode,
+          state: state.lastResponse.state,
+          agent: state.lastResponse.agent,
+          intent: state.lastResponse.intent,
+          next_actions: state.lastResponse.next_actions,
+          escalate: state.lastResponse.escalate,
+        }
+      : null;
     const payload = {
       sessionId: state.sessionId,
       customerId: state.customerId,
@@ -1108,7 +1371,7 @@
       speechSynthesisSupported: Boolean(state.synthEnabled),
       health: state.lastHealth,
       lastCapabilities: state.lastCapabilities,
-      lastResponse: state.lastResponse,
+      lastResponse: safeLastResponse,
       lastAlerts: state.lastAlerts,
     };
     els.technicalPre.textContent = JSON.stringify(payload, null, 2);
@@ -1152,6 +1415,9 @@
     if (els.alertsToggle && els.alertsBody) {
       els.alertsToggle.addEventListener("click", () => toggleCollapse(els.alertsToggle, els.alertsBody));
     }
+    if (els.promiseToggle && els.promiseBody) {
+      els.promiseToggle.addEventListener("click", () => toggleCollapse(els.promiseToggle, els.promiseBody));
+    }
     if (els.resolutionToggle && els.resolutionBody) {
       els.resolutionToggle.addEventListener("click", () => toggleCollapse(els.resolutionToggle, els.resolutionBody));
     }
@@ -1169,13 +1435,15 @@
     setMode("text");
     appendMessage(
       "agent",
-      "Hello. I can help with flight status and disruptions, rebooking, cancellations, refunds, baggage issues, accessibility support, and connecting you to a human agent if needed."
+      "Hi. Tell me what happened, and I’ll help you get to the fastest next step."
     );
     renderCustomerPlan(null);
+    renderPromiseLedger([], null);
     renderResolutionArtifacts({});
     renderAlerts([]);
     loadCapabilities();
     refreshTracker();
+    refreshCommitments();
     refreshAlerts();
     renderTechnical();
   }

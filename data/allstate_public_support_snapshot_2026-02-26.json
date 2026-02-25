@@ -1,0 +1,82 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Allstate",
+  "entries": [
+    {
+      "id": "allstate-contact-support",
+      "topic": "contact",
+      "tags": ["contact_support", "customer_service", "self_service"],
+      "text": "Allstate's official Contact Support page serves as a customer-service entry point with support and self-service routing.",
+      "source_url": "https://www.allstate.com/contact-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "allstate-call-center-contact",
+      "topic": "contact",
+      "tags": ["call_center", "phone", "contact"],
+      "text": "Allstate's official call center contact page indicates a separate phone-oriented support path for customer service.",
+      "source_url": "https://www.allstate.com/help-support/contact/call-center",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "allstate-claims-page",
+      "topic": "claims",
+      "tags": ["claims", "report_claim", "claim_status"],
+      "text": "Allstate's official claims page is a distinct surface for claims handling and updates.",
+      "source_url": "https://www.allstate.com/claims",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "allstate-billing-payments",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "account_service"],
+      "text": "Billing and payment support is typically routed via contact/account support paths separate from claims pages.",
+      "source_url": "https://www.allstate.com/contact-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "allstate-accessibility-entry",
+      "topic": "accessibility",
+      "tags": ["accessibility", "contact"],
+      "text": "Allstate's public support/contact surfaces provide the entry point for accessibility-related customer support needs.",
+      "source_url": "https://www.allstate.com/contact-support",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "pnc-claims-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "claims_digital", "channel_continuity"],
+      "text": "JD Power's 2025 U.S. Claims Digital Experience Study highlights persistent claims support continuity gaps and weak proactive updates across insurers.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-claims-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-11-17"
+    },
+    {
+      "id": "allstate-trustpilot-directional",
+      "topic": "customer_sentiment_signal",
+      "tags": ["trustpilot", "reviews", "support", "claims"],
+      "text": "Trustpilot reviews for Allstate are a directional user-generated support and claims friction signal, not an official Allstate source.",
+      "source_url": "https://www.trustpilot.com/review/allstate.com",
+      "source_type": "third_party_reviews",
+      "effective_date": "2026-02-26"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official contact support and call center pages",
+      "Dedicated claims surface",
+      "Clear public support entry points"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Support, claims, and billing flows remain split across separate paths the customer must choose",
+      "No public evidence of one support thread across chat, voice, and follow-up",
+      "No public request tracker tying together support interactions and next steps",
+      "No public guided resolution layer that explains what information is needed before handoff"
+    ]
+  }
+}

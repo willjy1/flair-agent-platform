@@ -1,0 +1,62 @@
+{
+  "slug": "xfinity",
+  "display_name": "Xfinity Support Agents",
+  "vertical": "telecom",
+  "category": "isp",
+  "locale": "en-US",
+  "support_experience_name": "Xfinity Support",
+  "customer_capabilities": [
+    "service outage and interruption support guidance",
+    "billing and account issue triage",
+    "installation and technician appointment support",
+    "document upload intake for billing/account issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email", "social"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Guide customers to the fastest service-status or account-support path.",
+    "Prepare a clear handoff summary when a human agent is needed."
+  ],
+  "citations_by_intent_topics": {
+    "REFUND": ["billing_payments", "contact"],
+    "BOOKING_CHANGE": ["appointments", "contact", "digital_self_service"],
+    "CANCELLATION": ["appointments", "contact"],
+    "DELAY_INFO": ["service_status", "contact", "digital_self_service"],
+    "IRROPS": ["service_status", "contact", "digital_self_service", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "GENERAL_INQUIRY": ["contact", "service_status", "billing_payments", "appointments", "digital_self_service"]
+  },
+  "official_channel_topics": ["contact", "service_status", "billing_payments", "appointments", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Xfinity Support", "url": "https://www.xfinity.com/support/", "description": "Official Xfinity support hub." },
+      { "label": "Xfinity Status Center", "url": "https://www.xfinity.com/support/status", "description": "Official Xfinity service status and outage tools." },
+      { "label": "Xfinity My Account", "url": "https://www.xfinity.com/support/articles/getting-started-with-xfinity-app", "description": "Official Xfinity app/account support guidance." }
+    ],
+    "DELAY_INFO": [
+      { "label": "Xfinity Status Center", "url": "https://www.xfinity.com/support/status", "description": "Official service status and outage information." }
+    ],
+    "REFUND": [
+      { "label": "Xfinity Billing Support", "url": "https://www.xfinity.com/support/", "description": "Official Xfinity billing and support paths." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Xfinity",
+    "contact_page_url": "https://www.xfinity.com/support/",
+    "help_center_url": "https://www.xfinity.com/support/status",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "X",
+    "hero_title": "Get internet and account support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with outages, billing, appointments, and account issues without starting over.",
+    "resource_panel_title": "Official Xfinity support links",
+    "brand_theme": {
+      "accent": "#6d28d9",
+      "accent_2": "#4c1d95",
+      "surface_tint": "#f7f2ff",
+      "brand_dark": "#1f1235"
+    }
+  }
+}

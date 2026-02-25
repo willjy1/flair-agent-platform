@@ -5,7 +5,7 @@ import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from models.schemas import ConversationState, SessionContext
 from settings import SETTINGS
@@ -65,6 +65,30 @@ class SessionMemoryStore:
             self._sessions.pop(key, None)
             self._touch.pop(key, None)
 
+    def _entity_freshness_for_context(self, entities: Dict[str, Any]) -> Dict[str, Any]:
+        raw_ts = entities.get("_entity_timestamps")
+        if not isinstance(raw_ts, dict):
+            return {"seconds": {}, "labels": {}}
+        now = datetime.utcnow()
+        seconds: Dict[str, int] = {}
+        labels: Dict[str, str] = {}
+        for key, raw in raw_ts.items():
+            try:
+                dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00")).replace(tzinfo=None)
+                age = max(0, int((now - dt).total_seconds()))
+                seconds[str(key)] = age
+                if age < 15 * 60:
+                    labels[str(key)] = "fresh"
+                elif age < 2 * 60 * 60:
+                    labels[str(key)] = "recent"
+                elif age < 24 * 60 * 60:
+                    labels[str(key)] = "stale"
+                else:
+                    labels[str(key)] = "old"
+            except Exception:
+                continue
+        return {"seconds": seconds, "labels": labels}
+
     async def get_or_create(self, channel: str, customer_id: str, session_id: str) -> SessionContext:
         key = self._key(channel, customer_id, session_id)
         with self._lock:
@@ -101,7 +125,20 @@ class SessionMemoryStore:
     async def set_entities(self, channel: str, customer_id: str, session_id: str, entities: Dict[str, object]) -> SessionContext:
         ctx = await self.get_or_create(channel, customer_id, session_id)
         with self._lock:
+            ts_map = dict(ctx.extracted_entities.get("_entity_timestamps") or {}) if isinstance(ctx.extracted_entities.get("_entity_timestamps"), dict) else {}
+            now_iso = datetime.utcnow().isoformat()
+            for key, value in (entities or {}).items():
+                if str(key).startswith("_"):
+                    continue
+                if value in (None, "", [], {}):
+                    ts_map.pop(str(key), None)
+                    continue
+                ts_map[str(key)] = now_iso
             ctx.extracted_entities.update(entities)
+            if ts_map:
+                ctx.extracted_entities["_entity_timestamps"] = ts_map
+            else:
+                ctx.extracted_entities.pop("_entity_timestamps", None)
             ctx.updated_at = datetime.utcnow()
             self._touch[self._key(channel, customer_id, session_id)] = datetime.utcnow()
             self._persist()
@@ -118,12 +155,15 @@ class SessionMemoryStore:
 
     async def get_context_window(self, channel: str, customer_id: str, session_id: str) -> Dict[str, object]:
         ctx = await self.get_or_create(channel, customer_id, session_id)
+        freshness = self._entity_freshness_for_context(ctx.extracted_entities)
         return {
             "summary": ctx.summary,
             "history": ctx.history,
             "entities": ctx.extracted_entities,
             "state": ctx.state.value,
             "updated_at": ctx.updated_at.isoformat(),
+            "entity_freshness_seconds": freshness.get("seconds", {}),
+            "entity_freshness_labels": freshness.get("labels", {}),
         }
 
     async def delete_session(self, channel: str, customer_id: str, session_id: str) -> None:
@@ -151,4 +191,3 @@ class SessionMemoryStore:
             if dirty:
                 self._persist()
         return None
-

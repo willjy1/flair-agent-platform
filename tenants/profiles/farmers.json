@@ -1,0 +1,57 @@
+{
+  "slug": "farmers",
+  "display_name": "Farmers Support Agents",
+  "vertical": "insurance",
+  "category": "multi_line_insurance",
+  "locale": "en-US",
+  "support_experience_name": "Farmers Support",
+  "customer_capabilities": [
+    "claim status and claims support guidance",
+    "billing and payment issue triage",
+    "roadside support preparation and escalation",
+    "document upload intake for claims and billing issues",
+    "human handoff with conversation context"
+  ],
+  "channels": ["web chat", "voice", "sms", "email"],
+  "support_commitments": [
+    "Keep context across channels so customers do not repeat details.",
+    "Guide customers to the right Farmers support path quickly.",
+    "Prepare clear follow-up and handoff summaries."
+  ],
+  "citations_by_intent_topics": {
+    "GENERAL_INQUIRY": ["contact", "claims", "billing_payments", "digital_self_service", "customer_sentiment_signal"],
+    "REFUND": ["billing_payments", "claims", "contact"],
+    "COMPLAINT": ["contact", "customer_sentiment_signal"],
+    "ACCESSIBILITY": ["accessibility", "contact"],
+    "COMPENSATION_CLAIM": ["claims", "contact"]
+  },
+  "official_channel_topics": ["contact", "claims", "billing_payments", "digital_self_service"],
+  "self_service_options": {
+    "GENERAL_INQUIRY": [
+      { "label": "Farmers Contact Us", "url": "https://www.farmers.com/contact-us/", "description": "Official Farmers customer care, claims, and billing contact page." },
+      { "label": "Farmers Claims", "url": "https://www.farmers.com/contact-us/", "description": "Official Farmers claims reporting and claims support links." },
+      { "label": "Farmers FAQ", "url": "https://www.farmers.com/faq/", "description": "Official Farmers FAQ and support resources." }
+    ],
+    "REFUND": [
+      { "label": "Farmers Contact Us", "url": "https://www.farmers.com/contact-us/", "description": "Official Farmers billing and payment support paths." }
+    ]
+  },
+  "hidden_from_customer_marketing": true,
+  "metadata": {
+    "company_name": "Farmers",
+    "contact_page_url": "https://www.farmers.com/contact-us/",
+    "help_center_url": "https://www.farmers.com/faq/",
+    "roadside_phone": "800-435-7764",
+    "wait_time_disclaimer": "Agent availability and wait times may vary.",
+    "brand_mark": "Fa",
+    "hero_title": "Get Farmers support in one conversation.",
+    "hero_subtitle": "Text or voice. Get help with claims, billing, and support issues without starting over.",
+    "resource_panel_title": "Official Farmers support links",
+    "brand_theme": {
+      "accent": "#d71920",
+      "accent_2": "#b31217",
+      "surface_tint": "#fff4f5",
+      "brand_dark": "#3c1518"
+    }
+  }
+}

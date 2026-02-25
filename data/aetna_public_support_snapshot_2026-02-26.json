@@ -1,0 +1,82 @@
+{
+  "snapshot_date": "2026-02-26",
+  "company": "Aetna",
+  "entries": [
+    {
+      "id": "aetna-contact-us-member",
+      "topic": "contact",
+      "tags": ["contact", "member_support", "customer_service"],
+      "text": "Aetna's official member resources include a dedicated contact-us page for member support and issue routing.",
+      "source_url": "https://www.aetna.com/individuals-families/member-rights-resources/need-to-contact-us.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "aetna-member-resources",
+      "topic": "member_support",
+      "tags": ["member_resources", "support", "benefits", "claims"],
+      "text": "Aetna publishes a member resources section that routes members to different support and plan information paths.",
+      "source_url": "https://www.aetna.com/individuals-families/member-rights-resources.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "aetna-member-portal",
+      "topic": "digital_self_service",
+      "tags": ["member_portal", "login", "self_service"],
+      "text": "Aetna provides a separate member portal login path, which indicates a distinct self-service surface from the public support pages.",
+      "source_url": "https://member.aetna.com/",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "aetna-claims-and-billing-routing",
+      "topic": "claims",
+      "tags": ["claims", "member_support", "portal", "contact"],
+      "text": "Aetna claim and member account questions are split across member portal and contact/member resource pages, requiring members to choose the right support path.",
+      "source_url": "https://www.aetna.com/individuals-families/member-rights-resources.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "aetna-billing-payments-routing",
+      "topic": "billing_payments",
+      "tags": ["billing", "payments", "member_support"],
+      "text": "Billing and payment issues are generally handled through member resources, portal, and contact channels rather than a single guided resolution flow.",
+      "source_url": "https://www.aetna.com/individuals-families/member-rights-resources/need-to-contact-us.html",
+      "source_type": "official",
+      "effective_date": "2026-02-26"
+    },
+    {
+      "id": "health-plan-digital-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "healthcare_digital", "findability", "usability"],
+      "text": "JD Power's 2025 U.S. Healthcare Digital Experience Study reports major usability and findability gaps in health plan digital experiences.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-healthcare-digital-experience-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-08-14"
+    },
+    {
+      "id": "commercial-health-plan-member-gap-jdpower",
+      "topic": "customer_sentiment_signal",
+      "tags": ["jd_power", "commercial_member_health_plan", "member_satisfaction"],
+      "text": "JD Power's 2025 Commercial Member Health Plan Study highlights significant member experience variation and the importance of support and digital channels.",
+      "source_url": "https://www.jdpower.com/business/press-releases/2025-us-commercial-member-health-plan-study",
+      "source_type": "industry_research",
+      "effective_date": "2025-05-19"
+    }
+  ],
+  "comparison_baseline": {
+    "current_strengths": [
+      "Official member resources and contact pages",
+      "Official member portal for self-service",
+      "Large plan organization with broad support surface area"
+    ],
+    "current_gaps_observed_or_likely": [
+      "Claims, billing, benefits, and member support are split across portal and multiple support/resource pages",
+      "No public evidence of one support conversation carrying context across channels",
+      "No public member-visible support tracker for cross-channel continuity",
+      "No public guided intake layer for claims, prior auth, and benefits questions in one thread"
+    ]
+  }
+}
